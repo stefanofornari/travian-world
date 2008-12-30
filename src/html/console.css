@@ -1,0 +1,149 @@
+table td {
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size:7pt;
+  text-align: center;
+  border: 1px solid #666666;
+  background-color: #C8FFC8;
+}
+
+.map {
+  width: 100%;
+  display: inline;
+}
+
+.innercell {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+}
+
+/* UNITY F2 */
+td.a2409967674711 {
+  background-color: #5454FF;
+}
+
+/* ------------------------ Confederations ---------------------- */
+
+/* JEDI-NE */
+td.a67715703716 {
+  background-color: #14C814;
+}
+
+
+/* 300JEDI */
+td.a46683489011 {
+  background-color: #14C814;
+}
+
+/* JEDI */
+td.a2273024 {
+  background-color: #14C814;
+}
+
+/* UNITY RO */
+td.a2409967675112 {
+  background-color: #14C814;
+}
+
+/* UNITY® */
+td.a2507770873 {
+  background-color: #14C814;
+}
+
+/* UNITY-AZ */
+td.a2409967687089 {
+  background-color: #14C814;
+}
+
+/* UNITY CF */
+td.a2409967674638 {
+  background-color: #14C814;
+}
+
+/* UNITY~X~ */
+td.a2409967765679 {
+  background-color: #14C814;
+}
+
+/* UNITY-CF */
+td.a2409967687131 {
+  background-color: #14C814;
+}
+
+/* UNITY C */
+td.a77740892728 {
+  background-color: #14C814;
+}
+
+/* UNITY SA */
+td.a2409967675129 {
+  background-color: #14C814;
+}
+
+/* UNITY~W~ */
+td.a2409967765648 {
+  background-color: #14C814;
+}
+
+/* UNITY™ */
+td.a2507779181 {
+  background-color: #14C814;
+}
+
+/* UNITY-RE */
+td.a2409967687595 {
+  background-color: #14C814;
+}
+
+/* FenrirIV */
+td.a2018778587513 {
+  background-color: #14C814;
+}
+
+/* UNITY F1 */
+td.a2409967674710 {
+  background-color: #14C814;
+}
+
+
+
+/* ----------------------------- NAPs --------------------------- */
+
+/* JBW */
+td.a73247 {
+  background-color: #C89600;
+}
+
+/* JEDI-USA */
+td.a2099186822422 {
+  background-color: #C89600;
+}
+
+/* ----------------------------- WARs --------------------------- */
+
+/* CR */
+td.a2159 {
+  background-color: #FF0000;
+}
+
+/* ---------------------------- Other --------------------------- */
+
+/* LM-W */
+td.a72383137483 {
+  background-color: #FF0000;
+}
+
+/* RISE - Y */
+td.a2323263065935 {
+  background-color: #FF0000;
+}
+
+/* RISE_NE */
+td.a74944031469 {
+  background-color: #FF0000;
+}
+
+/* WM.W */
+td.a2507770873 {
+  background-color: #FF0000;
+}
