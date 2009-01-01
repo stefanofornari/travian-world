@@ -28,9 +28,9 @@
 package ste.travian.store;
 
 import java.io.File;
-import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 import junit.framework.TestCase;
 import ste.travian.world.MapDownloader;
@@ -181,6 +181,50 @@ public class WorldStoreTest extends TestCase {
         Tile tile = world.getTile(290, 397);
         
         assertEquals(3094, tile.getId());
+    }
+
+    public void testAlliances() throws Exception {
+        if (!worldUpdated) {
+            testUpdateWorld();
+            assertEquals(true, worldUpdated);
+        }
+
+        WorldStore store = new WorldStore();
+        Map<Integer,String> alliances = store.readAlliances();
+
+        //
+        // Let's check a couple of values...
+        //
+        assertTrue(alliances.containsKey(new Integer(539)));
+        assertEquals("T[SD]", alliances.get(new Integer(539)));
+
+        assertTrue(alliances.containsKey(new Integer(539)));
+        assertEquals("Berserk+", alliances.get(new Integer(436)));
+    }
+
+    //
+    // TODO: we now test the read only; we need to add write also
+    //
+    public void testAllianceGroups() throws Exception {
+        if (!worldUpdated) {
+            testUpdateWorld();
+            assertEquals(true, worldUpdated);
+        }
+
+        WorldStore store = new WorldStore();
+        Map<String,ArrayList<String>> groups = store.readAllianceGroups();
+
+        assertEquals(1, groups.size());
+        assertTrue(groups.containsKey(WorldStore.REST_OF_THE_WORLD_GROUP));
+        
+        ArrayList<String> group = groups.get(WorldStore.REST_OF_THE_WORLD_GROUP);
+        assertEquals(6, group.size());
+
+        //
+        // Let's check some values
+        //
+        assertTrue(group.contains("Berserk+"));
+        assertTrue(group.contains("T[SD]"));
     }
 
 }

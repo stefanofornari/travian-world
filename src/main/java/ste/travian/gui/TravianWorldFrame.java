@@ -62,9 +62,9 @@ public class TravianWorldFrame extends JFrame {
     private WorldController c;
 
     
-    /** Creates new form TravianMapFrame2 */
-    public TravianWorldFrame() {
-        c = new WorldController(this);
+    /** Creates new form TravianWorldFrame */
+    public TravianWorldFrame(WorldController controller) {
+        c = controller;
         initComponents();
     }
     
@@ -105,22 +105,6 @@ public class TravianWorldFrame extends JFrame {
         setJMenuBar(new TravianWorldMenuBar(c));
         
         pack();
-        
-        //
-        // Load the existing map
-        //
-        EventQueue.invokeLater(
-            new Runnable() {
-                public void run() {
-                    try {
-                        c.load();
-                        showMap(c.getWorldPanel());
-                    } catch (Exception e) {
-                        error("Error creating the map", e);
-                    }
-                }
-            }
-        );
     }
 
 
@@ -191,7 +175,13 @@ public class TravianWorldFrame extends JFrame {
         
         );
     }
-    
+
+    public WorldController getController() {
+        return c;
+    }
+
+    // ---------------------------------------------------------- Private mthods
+
     private void showStackTrace(final String msg, final Throwable t) {
         EventQueue.invokeLater(
             new Runnable() {
@@ -231,25 +221,5 @@ public class TravianWorldFrame extends JFrame {
         
         );
     }
-
-    
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) throws Exception {
-        //
-        // Tweaks for MacOS UI
-        //
-        System.setProperty("apple.laf.useScreenMenuBar", "true");
-        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "About Travian World");
-        System.setProperty("com.apple.mrj.application.growbox.intrudes", "false");
-        // ---
-        
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new TravianWorldFrame().setVisible(true);
-            }
-        });
-    }    
 }
 

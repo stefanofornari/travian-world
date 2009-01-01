@@ -28,128 +28,245 @@
 
 package ste.travian.gui;
 
-import java.awt.GridLayout;
-import java.awt.Toolkit;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeModelEvent;
-import javax.swing.event.TreeModelListener;
+import com.sun.org.apache.xerces.internal.impl.xs.opti.DefaultNode;
+import javax.swing.*;
+import javax.swing.event.*;
+import javax.swing.tree.*;
 
-public class AllianceGroupsTree extends JPanel {
-    protected DefaultMutableTreeNode rootNode;
-    protected DefaultTreeModel treeModel;
-    protected JTree tree;
-    private Toolkit toolkit = Toolkit.getDefaultToolkit();
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+import java.awt.event.*;
+import java.io.*;
 
-    public AllianceGroupsTree() {
-        super(new GridLayout(1,0));
-        
-        rootNode = new DefaultMutableTreeNode("Root Node");
-        treeModel = new DefaultTreeModel(rootNode);
+public class AllianceGroupsTree extends JTree
+        implements TreeSelectionListener, DragGestureListener, DropTargetListener, DragSourceListener {
 
-        tree = new JTree(treeModel);
-        tree.setEditable(true);
-        tree.getSelectionModel().setSelectionMode
-                (TreeSelectionModel.SINGLE_TREE_SELECTION);
-        tree.setShowsRootHandles(true);
+    /** Stores the parent Frame of the component */
+    private Frame parent = null;
+    /** Stores the selected node info */
+    protected TreePath selectedTreePath = null;
+    protected DefaultMutableTreeNode selectedNode = null;
+    /** Variables needed for DnD */
+    private DragSource dragSource = null;
 
-        JScrollPane scrollPane = new JScrollPane(tree);
-        add(scrollPane);
+    /** Constructor
+    @param root The root node of the tree
+    @param parent parent JFrame of the JTree */
+    public AllianceGroupsTree(Frame parent) {
+        super();
+        this.parent = parent;
+        setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
+
+        addTreeSelectionListener(this);
+
+        dragSource = DragSource.getDefaultDragSource();
+
+        DragGestureRecognizer dgr =
+            dragSource.createDefaultDragGestureRecognizer(
+                this, DnDConstants.ACTION_MOVE, this
+            );
+
+        //
+        // Eliminates right mouse clicks as valid actions
+        //
+        dgr.setSourceActions(dgr.getSourceActions() & ~InputEvent.BUTTON3_MASK);
+
+        DropTarget dropTarget = new DropTarget(this, this);
     }
 
-    /** Remove all nodes except the root node. */
-    public void clear() {
-        rootNode.removeAllChildren();
-        treeModel.reload();
+    /** Returns The selected node */
+    public DefaultMutableTreeNode getSelectedNode() {
+        return selectedNode;
     }
 
-    /** Remove the currently selected node. */
-    public void removeCurrentNode() {
-        TreePath currentSelection = tree.getSelectionPath();
-        if (currentSelection != null) {
-            DefaultMutableTreeNode currentNode = (DefaultMutableTreeNode)
-                         (currentSelection.getLastPathComponent());
-            MutableTreeNode parent = (MutableTreeNode)(currentNode.getParent());
-            if (parent != null) {
-                treeModel.removeNodeFromParent(currentNode);
+    /** DragGestureListener interface method */
+    public void dragGestureRecognized(DragGestureEvent e) {
+        //Get the selected node
+        DefaultMutableTreeNode dragNode = getSelectedNode();
+        if (dragNode != null) {
+            Object o = dragNode.getUserObject();
+
+            if (!(o instanceof Transferable)) {
                 return;
             }
-        } 
 
-        // Either there was no selection, or the root was selected.
-        toolkit.beep();
+            Transferable transferable = (Transferable)o;
+
+            //Select the appropriate cursor;
+            Cursor cursor = DragSource.DefaultMoveNoDrop;
+
+            //
+            // begin the drag
+            //
+            dragSource.startDrag(e, cursor, transferable, this);
+        }
     }
 
-    /** Add child to the currently selected node. */
-    public DefaultMutableTreeNode addObject(Object child) {
-        DefaultMutableTreeNode parentNode = null;
-        TreePath parentPath = tree.getSelectionPath();
+    /** DragSourceListener interface method */
+    public void dragDropEnd(DragSourceDropEvent e) {
+    }
 
-        if (parentPath == null) {
-            parentNode = rootNode;
+    /** DragSourceListener interface method */
+    public void dragEnter(DragSourceDragEvent e) {
+    }
+
+    /** DragSourceListener interface method */
+    public void dragOver(DragSourceDragEvent e) {
+    }
+
+    /** DragSourceListener interface method */
+    public void dropActionChanged(DragSourceDragEvent e) {
+    }
+
+    /** DragSourceListener interface method */
+    public void dragExit(DragSourceEvent e) {
+    }
+
+    /** DropTargetListener interface method - What we do when drag is released */
+    public void drop(DropTargetDropEvent e) {
+        try {
+            Transferable tr = e.getTransferable();
+
+            //flavor not supported, reject drop
+            if (!tr.isDataFlavorSupported(AllianceDnDInfo.INFO_FLAVOR)) {
+                e.rejectDrop();
+            }
+
+            //cast into appropriate data type
+            AllianceDnDInfo childInfo =
+                (AllianceDnDInfo)tr.getTransferData(AllianceDnDInfo.INFO_FLAVOR);
+
+            //get new parent node
+            Point loc = e.getLocation();
+            TreePath destinationPath = getPathForLocation(loc.x, loc.y);
+
+            final String msg = testDropTarget(destinationPath, selectedTreePath);
+            if (msg != null) {
+                e.rejectDrop();
+
+                SwingUtilities.invokeLater(new Runnable() {
+
+                    public void run() {
+                        JOptionPane.showMessageDialog(
+                                parent, msg, "Error Dialog", JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+                return;
+            }
+
+
+            DefaultMutableTreeNode newParent =
+                (DefaultMutableTreeNode) destinationPath.getLastPathComponent();
+
+            //get old parent node
+            DefaultMutableTreeNode oldParent =
+                (DefaultMutableTreeNode) getSelectedNode().getParent();
+
+            int action = e.getDropAction();
+            //make new child node
+            DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(childInfo);
+
+            try {
+                oldParent.remove(getSelectedNode());
+                newParent.add(newChild);
+
+                e.acceptDrop(DnDConstants.ACTION_MOVE);
+            } catch (java.lang.IllegalStateException ils) {
+                e.rejectDrop();
+            }
+
+            e.getDropTargetContext().dropComplete(true);
+
+            //expand nodes appropriately - this probably isnt the best way...
+            DefaultTreeModel model = (DefaultTreeModel) getModel();
+            model.reload(oldParent);
+            model.reload(newParent);
+            TreePath parentPath = new TreePath(newParent.getPath());
+            expandPath(parentPath);
+        } catch (IOException io) {
+            e.rejectDrop();
+        } catch (UnsupportedFlavorException ufe) {
+            e.rejectDrop();
+        }
+    } //end of method
+
+    /** DropTaregetListener interface method */
+    public void dragEnter(DropTargetDragEvent e) {
+    }
+
+    /** DropTaregetListener interface method */
+    public void dragExit(DropTargetEvent e) {
+    }
+
+    /** DropTaregetListener interface method */
+    public void dragOver(DropTargetDragEvent e) {
+        //
+        //set cursor location. Needed in setCursor method
+        //
+        Point cursorLocationBis = e.getLocation();
+        TreePath destinationPath =
+                getPathForLocation(cursorLocationBis.x, cursorLocationBis.y);
+
+        //
+        // if destination path is okay accept drop...
+        //
+        if (testDropTarget(destinationPath, selectedTreePath) == null) {
+            e.acceptDrag(DnDConstants.ACTION_COPY_OR_MOVE);
         } else {
-            parentNode = (DefaultMutableTreeNode)
-                         (parentPath.getLastPathComponent());
+            //
+            // ...otherwise reject drop
+            //
+            e.rejectDrag();
         }
-
-        return addObject(parentNode, child, true);
     }
 
-    public DefaultMutableTreeNode addObject(DefaultMutableTreeNode parent,
-                                            Object child) {
-        return addObject(parent, child, false);
+    /** DropTaregetListener interface method */
+    public void dropActionChanged(DropTargetDragEvent e) {
     }
 
-    public DefaultMutableTreeNode addObject(DefaultMutableTreeNode parent,
-                                            Object child, 
-                                            boolean shouldBeVisible) {
-        DefaultMutableTreeNode childNode = 
-                new DefaultMutableTreeNode(child);
-
-        if (parent == null) {
-            parent = rootNode;
+    /** TreeSelectionListener - sets selected node */
+    public void valueChanged(TreeSelectionEvent evt) {
+        selectedTreePath = evt.getNewLeadSelectionPath();
+        if (selectedTreePath == null) {
+            selectedNode = null;
+            return;
         }
-	
-	//It is key to invoke this on the TreeModel, and NOT DefaultMutableTreeNode
-        treeModel.insertNodeInto(childNode, parent, 
-                                 parent.getChildCount());
-
-        //Make sure the user can see the lovely new node.
-        if (shouldBeVisible) {
-            tree.scrollPathToVisible(new TreePath(childNode.getPath()));
-        }
-        return childNode;
+        selectedNode = (DefaultMutableTreeNode)selectedTreePath.getLastPathComponent();
     }
 
-    class MyTreeModelListener implements TreeModelListener {
-        public void treeNodesChanged(TreeModelEvent e) {
-            DefaultMutableTreeNode node;
-            node = (DefaultMutableTreeNode)(e.getTreePath().getLastPathComponent());
+    /** 
+     * Convenience method to test whether drop location is valid
+     * 
+     * @param destination The destination path
+     * @param dropper The path for the node to be dropped
+     *
+     * @return null if no problems, otherwise an explanation
+     */
+    private String testDropTarget(TreePath destination, TreePath dropper) {
+         boolean destinationPathIsNull = destination == null;
+        if (destinationPathIsNull) {
+            return "Invalid drop location.";
+        }
 
-            /*
-             * If the event lists children, then the changed
-             * node is the child of the node we've already
-             * gotten.  Otherwise, the changed node and the
-             * specified node are the same.
-             */
+        DefaultMutableTreeNode node =
+            (DefaultMutableTreeNode) destination.getLastPathComponent();
+        if (!node.getAllowsChildren()) {
+            return "This node does not allow children";
+        }
 
-                int index = e.getChildIndices()[0];
-                node = (DefaultMutableTreeNode)(node.getChildAt(index));
+        if (destination.equals(dropper)) {
+            return "Destination cannot be same as source";
+        }
 
-            System.out.println("The user has finished editing the node.");
-            System.out.println("New value: " + node.getUserObject());
+        if (dropper.isDescendant(destination)) {
+            return "Destination node cannot be a descendant.";
         }
-        public void treeNodesInserted(TreeModelEvent e) {
+
+        if (dropper.getParentPath().equals(destination)) {
+            return "Destination node cannot be a parent.";
         }
-        public void treeNodesRemoved(TreeModelEvent e) {
-        }
-        public void treeStructureChanged(TreeModelEvent e) {
-        }
+
+        return null;
     }
 }

@@ -31,6 +31,10 @@ import java.io.BufferedReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 import ste.travian.world.Tile;
 import ste.travian.world.World;
 
@@ -40,7 +44,12 @@ import ste.travian.world.World;
  */
 public class WorldStore {
 
+    public static final String REST_OF_THE_WORLD_GROUP = "Rest of the world";
     public static final String WORLD_TABLE_NAME = "X_WORLD";
+    public static final String ALLIANCE_TABLE_NAME = "X_ALLIANCE";
+    public static final String GROUP_TABLE_NAME = "X_GROUP";
+    public static final String ALLIANCE_GROUP_TABLE_NAME = "X_ALLIANCE_GROUP";
+
     public static final String SQL_CREATE_WORLD =
             "CREATE TABLE " +
             WORLD_TABLE_NAME +
@@ -53,13 +62,66 @@ public class WorldStore {
             "village varchar(100) NOT NULL," +
             "uid int NOT NULL," +
             "player varchar(40) NOT NULL," +
-            "vaid int NOT NULL," +
+            "aid int NOT NULL," +
             "alliance varchar(40) NOT NULL," +
             "population smallint NOT NULL," +
             "PRIMARY KEY (id)" +
             ")";
-    public static final String SQL_DELETE_ALL = "delete from " + WORLD_TABLE_NAME;
-    public static final String SQL_GET_ALL = "select * from " + WORLD_TABLE_NAME;
+    
+    public static final String SQL_CREATE_ALLIANCE  =
+            "CREATE TABLE "                         +
+            ALLIANCE_TABLE_NAME                     +
+            "(id int primary key, name varchar(40))";
+
+    public static final String SQL_CREATE_GROUP      =
+            "CREATE TABLE "                          +
+            GROUP_TABLE_NAME                         +
+            "(id int primary key, name varchar(100))";
+
+    public static final String SQL_CREATE_ALLIANCE_GROUP =
+            "CREATE TABLE "                              +
+            ALLIANCE_GROUP_TABLE_NAME                    +
+            "(aid int, gid int, primary key(aid, gid))"  ;
+
+    public static final String SQL_DELETE_ALL_WORLD = "delete from " + WORLD_TABLE_NAME;
+    public static final String SQL_DELETE_ALL_ALLIANCE = "delete from " + ALLIANCE_TABLE_NAME;
+    public static final String SQL_DELETE_ALL_GROUP = "delete from " + GROUP_TABLE_NAME;
+    public static final String SQL_DELETE_ALL_ALLIANCE_GROUP_TABLE_NAME =
+            "delete from " + ALLIANCE_GROUP_TABLE_NAME;
+
+    public static final String SQL_GET_ALL_WORLD =
+            "select * from " + WORLD_TABLE_NAME  ;
+    public static final String SQL_GET_ALL_ALLIANCES = 
+            " select * from "                        +
+            ALLIANCE_TABLE_NAME                      +
+            " order by name"                         ;
+    public static final String SQL_GET_ALL_ALLIANCE_GROUPS =
+            "select g.name, a.name from "                  +
+            GROUP_TABLE_NAME                               +
+            " g, "                                         +
+            ALLIANCE_TABLE_NAME                            +
+            " a, "                                         +
+            ALLIANCE_GROUP_TABLE_NAME                      +
+            " ag where "                                   +
+            "g.id=ag.gid and a.id=ag.aid "                 +
+            "order by 1"                                   ;
+    public static final String SQL_GET_REST_OF_THE_WORLD_ALLIANCES =
+            "select name from "                                    +
+            ALLIANCE_TABLE_NAME                                    +
+            " where id not in ("                                   +
+            "select distinct aid from "                            +
+            ALLIANCE_GROUP_TABLE_NAME                              +
+            ") order by 1"                                         ;
+
+
+    public static final String SQL_INSERT_ALL_ALLIANCES =
+        "insert into "                                  +
+        ALLIANCE_TABLE_NAME                             +
+        "("                                             +
+        "select distinct aid, alliance from "           +
+        WORLD_TABLE_NAME                                +
+        ")"                                             ;
+
 
     /**
      * Creates the world in the database.
@@ -72,7 +134,9 @@ public class WorldStore {
             sc = new StoreConnection();
 
             sc.executeUpdate(SQL_CREATE_WORLD);
-
+            sc.executeUpdate(SQL_CREATE_ALLIANCE);
+            sc.executeUpdate(SQL_CREATE_GROUP);
+            sc.executeUpdate(SQL_CREATE_ALLIANCE_GROUP);
         } catch (Exception e) {
             throw new StoreException("Error in creating the world map", e);
         } finally {
@@ -118,7 +182,8 @@ public class WorldStore {
             //
             // First we need to delete everything
             //
-            sc.executeUpdate(SQL_DELETE_ALL);
+            sc.executeUpdate(SQL_DELETE_ALL_WORLD);
+            sc.executeUpdate(SQL_DELETE_ALL_ALLIANCE);
 
             String query = null;
             while ((query = in.readLine()) != null) {
@@ -126,9 +191,12 @@ public class WorldStore {
                 // for some reason the table name is included within `, which
                 // fail the execution of the query... let's take them out
                 //
-                System.out.println(query);
                 sc.executeUpdate(query.replaceAll("`", ""));
             }
+            //
+            // Let's extract the alliances
+            //
+            sc.executeUpdate(SQL_INSERT_ALL_ALLIANCES);
 
         } catch (Exception e) {
             throw new StoreException("Error in storing the world map", e);
@@ -160,7 +228,7 @@ public class WorldStore {
             //
             // First we need to delete everything
             //
-            rs = sc.executeQuery(SQL_GET_ALL);
+            rs = sc.executeQuery(SQL_GET_ALL_WORLD);
 
             Tile t = null;
             while (rs.next()) {
@@ -231,6 +299,117 @@ public class WorldStore {
             }
         }
 
+    }
+
+    /**
+     * Returns the alliances as stored in the database.
+     *
+     * @return the alliances alliances in a Map<Integer, String> form (id, name)
+     *
+     * @throws ste.travian.store.StoreException
+     */
+    public Map<Integer, String> readAlliances() throws StoreException {
+        Map<Integer, String> ret =  new HashMap<Integer, String>();
+
+        StoreConnection sc = null;
+        ResultSet rs = null;
+        try {
+            sc = new StoreConnection();
+
+            //
+            // We cannot simply select the table by name because some db use
+            // capital letters, other small letters...
+            //
+            rs = sc.executeQuery(SQL_GET_ALL_ALLIANCES);
+
+            while (rs.next()) {
+                ret.put(new Integer(rs.getInt(1)), rs.getString(2));
+            }
+
+            return ret;
+
+        } catch (SQLException e) {
+            throw new StoreException("Error retrieving alliances", e);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                }
+                rs = null;
+            }
+            if (sc != null) {
+                try {
+                    sc.closeConnection();
+                } catch (SQLException e) {
+                }
+                sc = null;
+            }
+        }
+    }
+
+    /**
+     * Returns the groups of alliances as stored in the backend.
+     *
+     * @return the groups of alliances in a Map<String, String[]> form
+     *
+     *
+     * @throws ste.travian.store.StoreException
+     */
+    public Map<String, ArrayList<String>> readAllianceGroups() throws StoreException {
+        Map<String, ArrayList<String>> ret =
+            new TreeMap<String, ArrayList<String>>();
+
+        StoreConnection sc = null;
+        ResultSet rs = null;
+        try {
+            sc = new StoreConnection();
+
+            String groupName = null;
+            ArrayList<String> group = null;
+
+            //
+            // First get the alliances not in any group
+            //
+            rs = sc.executeQuery(SQL_GET_REST_OF_THE_WORLD_ALLIANCES);
+
+            groupName = REST_OF_THE_WORLD_GROUP;
+            group = new ArrayList<String>();
+
+            ret.put(groupName, group);
+            while (rs.next()) {
+                group.add(rs.getString(1));
+            }
+            rs.close(); rs = null;
+
+            //
+            // Now let's get the groups
+            //
+            rs = sc.executeQuery(SQL_GET_ALL_ALLIANCE_GROUPS);
+
+            while (rs.next()) {
+                groupName = rs.getString(1);
+                if (!ret.containsKey(groupName)) {
+                    group = new ArrayList<String>();
+                    ret.put(groupName, group);
+                }
+                group.add(rs.getString(1));
+            }
+
+            return ret;
+
+        } catch (SQLException e) {
+            throw new StoreException("Error retrieving alliance groups", e);
+        } finally {
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException e) {}
+                rs = null;
+            }
+            if (sc != null) {
+                try { sc.closeConnection(); } catch (SQLException e) {}
+                sc = null;
+            }
+        }
     }
 
     // --------------------------------------------------------- Private methods

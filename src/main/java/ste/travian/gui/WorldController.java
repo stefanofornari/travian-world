@@ -28,9 +28,16 @@
 
 package ste.travian.gui;
 
+import java.awt.EventQueue;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Map;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
@@ -52,12 +59,14 @@ implements ChartMouseListener {
     
     private World world;
     private URL url;
-    private TravianWorldFrame frame;
+    private TravianWorldFrame mainWindow;
+    private AllianceGroupsDialog allianceGroupsWindow;
     
-    protected WorldController(TravianWorldFrame frame) {
-        this.frame = frame;
+    protected WorldController() {
         url = null;
         world = null;
+        mainWindow = null;
+        allianceGroupsWindow = null;
     }
     
     /**
@@ -141,7 +150,51 @@ implements ChartMouseListener {
     }
     
     public void showAllianceGroupsDialog() {
-        new AllianceGroupsDialog(frame).setVisible(true);
+        allianceGroupsWindow =
+            new AllianceGroupsDialog(mainWindow);
+
+        try {
+            populateAllianceGroupsTree();
+        } catch (TravianException e) {
+            mainWindow.error(e.getMessage(), e);
+        }
+
+        allianceGroupsWindow.setVisible(true);
+    }
+
+    public void populateAllianceGroupsTree() throws TravianException {
+        WorldStore store = new WorldStore();
+        try {
+            store.initialize();
+        } catch (Exception e) {
+            throw new TravianException("Unable to initialize the store...", e);
+        }
+        
+        Map<String, ArrayList<String>> groups = store.readAllianceGroups();
+
+        AllianceGroupsTree tree = allianceGroupsWindow.getTree();
+        JList restOfTheWorldList = allianceGroupsWindow.getRestOfTheWorldList();
+
+        DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Groups");
+        DefaultMutableTreeNode groupNode = null;
+        DefaultMutableTreeNode allianceNode = null;
+        for(String group: groups.keySet()) {
+            groupNode = new DefaultMutableTreeNode(group);
+            groupNode.setAllowsChildren(true);
+            root.add(groupNode);
+            for (String alliance: groups.get(group)) {
+                /*
+                allianceNode =  new DefaultMutableTreeNode(alliance);
+                allianceNode.setAllowsChildren(false);
+                allianceNode.setUserObject(new AllianceDnDInfo(alliance));
+                groupNode.add(allianceNode);
+                */
+                ((DefaultListModel)restOfTheWorldList.getModel()).addElement(alliance);
+            }
+        }
+        model.setRoot(root);
     }
     
     // ------------------------------------------------------ ChartMouseListener
@@ -153,23 +206,61 @@ implements ChartMouseListener {
     public void chartMouseMoved(ChartMouseEvent event) {
         ChartEntity entity = event.getEntity();
         if (entity == null) {
-            frame.statusMessage("");
+            mainWindow.statusMessage("");
             return;
         }
         if (entity instanceof XYItemEntity) {
             XYItemEntity itemEntity = (XYItemEntity)entity;
             WorldDataset dataset = (WorldDataset)itemEntity.getDataset();
-            frame.statusMessage(String.valueOf(dataset.getTile(itemEntity.getSeriesIndex(), itemEntity.getItem())));
+            mainWindow.statusMessage(String.valueOf(dataset.getTile(itemEntity.getSeriesIndex(), itemEntity.getItem())));
         } else {
-            frame.statusMessage(String.valueOf(entity));
+            mainWindow.statusMessage(String.valueOf(entity));
         }
     }
 
     public TravianWorldFrame getFrame() {
-        return frame;
+        return mainWindow;
     }
 
-    public void setFrame(TravianWorldFrame frame) {
-        this.frame = frame;
+    public void showMainWindow() {
+        EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                mainWindow = new TravianWorldFrame(WorldController.this);
+                mainWindow.setVisible(true);
+            }
+        });
+    }
+
+    public static void main(String[] args) {
+        //
+        // Load the existing map
+        //
+        /*
+        EventQueue.invokeLater(
+            new Runnable() {
+                public void run() {
+                    try {
+                        c.load();
+                        showMap(c.getWorldPanel());
+                    } catch (Exception e) {
+                        error("Error creating the map", e);
+                    }
+                }
+            }
+        );
+         */
+        WorldController c = new WorldController();
+
+        //
+        // Tweaks for MacOS UI
+        // Rememeber to add -Xdock:name="Travian world" to the command line...
+        //
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
+        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "About Travian World");
+        System.setProperty("com.apple.mrj.application.growbox.intrudes", "false");
+        // ---
+        
+        c.showMainWindow();
+
     }
 }
