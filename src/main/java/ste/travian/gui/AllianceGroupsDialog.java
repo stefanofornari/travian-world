@@ -50,7 +50,7 @@ public class AllianceGroupsDialog extends JDialog
     public AllianceGroupsDialog(JFrame frame) {
         super(frame, true);
 
-        setPreferredSize(new Dimension(400, 600));
+        //setPreferredSize(new Dimension(400, 600));
         setLayout(new BorderLayout());
 
         //Create the components.
@@ -69,14 +69,7 @@ public class AllianceGroupsDialog extends JDialog
         clearButton.addActionListener(this);
 
         //Lay everything out.
-        treePanel.setPreferredSize(new Dimension(300, 150));
         getContentPane().add(treePanel, BorderLayout.CENTER);
-
-        JPanel panel = new JPanel(new GridLayout(0, 3));
-        panel.add(addButton);
-        panel.add(removeButton);
-        panel.add(clearButton);
-        getContentPane().add(panel, BorderLayout.SOUTH);
 
         pack();
     }

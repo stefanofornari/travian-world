@@ -231,7 +231,7 @@ implements ChartMouseListener {
         });
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         //
         // Load the existing map
         //
@@ -259,7 +259,7 @@ implements ChartMouseListener {
         System.setProperty("com.apple.mrj.application.apple.menu.about.name", "About Travian World");
         System.setProperty("com.apple.mrj.application.growbox.intrudes", "false");
         // ---
-        
+
         c.showMainWindow();
 
     }

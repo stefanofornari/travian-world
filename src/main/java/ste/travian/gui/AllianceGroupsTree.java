@@ -28,7 +28,6 @@
 
 package ste.travian.gui;
 
-import com.sun.org.apache.xerces.internal.impl.xs.opti.DefaultNode;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
@@ -56,6 +55,12 @@ public class AllianceGroupsTree extends JTree
     public AllianceGroupsTree(Frame parent) {
         super();
         this.parent = parent;
+
+        setEditable(true);
+        getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        setShowsRootHandles(true);
+        setPreferredSize(new Dimension(200, 300));
+        
         setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
 
         addTreeSelectionListener(this);

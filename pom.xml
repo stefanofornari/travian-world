@@ -35,6 +35,11 @@
             <version>1.8.0.7</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>net.java.dev.swing-layout</groupId>
+            <artifactId>swing-layout</artifactId>
+            <version>1.0.2</version>
+        </dependency>
     </dependencies>
     <!--
     <testResources>
