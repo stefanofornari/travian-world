@@ -30,7 +30,8 @@ package ste.travian.gui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import javax.swing.BorderFactory;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -56,7 +57,13 @@ public class AllianceGroupsPanel extends JPanel {
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.add(new JButton("+"));
+        JButton button = new JButton("+");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addGroup();
+            }
+        });
+        panel.add(button);
         panel.add(new JButton("-"));
         panel.setPreferredSize(new Dimension(40, 100));
         add(panel, BorderLayout.CENTER);
@@ -87,6 +94,28 @@ public class AllianceGroupsPanel extends JPanel {
 
         // Either there was no selection, or the root was selected.
         toolkit.beep();
+    }
+
+    public void addGroup() {
+        DefaultMutableTreeNode node = null;
+        DefaultMutableTreeNode newNode = new DefaultMutableTreeNode("New group");
+        newNode.setAllowsChildren(true);
+
+        DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+
+        DefaultMutableTreeNode rootNode =
+            (DefaultMutableTreeNode)model.getRoot();
+
+        int nChildren = rootNode.getChildCount(), i = 0;
+        for (; i<nChildren; ++i) {
+            node = (DefaultMutableTreeNode)rootNode.getChildAt(i);
+            if (String.valueOf(node.getUserObject()).compareTo(String.valueOf(newNode.getUserObject())) > 0) {
+                break;
+            }
+        }
+        model.insertNodeInto(newNode, rootNode, i);
+        tree.scrollPathToVisible(new TreePath(newNode.getPath()));
+
     }
 
     public AllianceGroupsTree getTree() {
