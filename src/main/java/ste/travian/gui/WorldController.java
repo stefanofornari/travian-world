@@ -28,6 +28,7 @@
 
 package ste.travian.gui;
 
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.io.IOException;
 import java.net.URL;
@@ -38,6 +39,7 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
+import org.jdesktop.swingx.JXDialog;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
@@ -60,13 +62,13 @@ implements ChartMouseListener {
     private World world;
     private URL url;
     private TravianWorldFrame mainWindow;
-    private AllianceGroupsDialog allianceGroupsWindow;
+    private AllianceGroupsPanel allianceGroupsPanel;
     
     protected WorldController() {
         url = null;
         world = null;
         mainWindow = null;
-        allianceGroupsWindow = null;
+        allianceGroupsPanel = null;
     }
     
     /**
@@ -150,8 +152,11 @@ implements ChartMouseListener {
     }
     
     public void showAllianceGroupsDialog() {
-        allianceGroupsWindow =
-            new AllianceGroupsDialog(mainWindow);
+        allianceGroupsPanel = new AllianceGroupsPanel();
+        JXDialog dialog = new JXDialog(allianceGroupsPanel);
+
+        dialog.setModal(true);
+        dialog.setTitle("Alliance groups selection");
 
         try {
             populateAllianceGroupsTree();
@@ -159,7 +164,8 @@ implements ChartMouseListener {
             mainWindow.error(e.getMessage(), e);
         }
 
-        allianceGroupsWindow.setVisible(true);
+        dialog.pack();
+        dialog.setVisible(true);
     }
 
     public void populateAllianceGroupsTree() throws TravianException {
@@ -172,8 +178,8 @@ implements ChartMouseListener {
         
         Map<String, ArrayList<String>> groups = store.readAllianceGroups();
 
-        AllianceGroupsTree tree = allianceGroupsWindow.getTree();
-        JList restOfTheWorldList = allianceGroupsWindow.getRestOfTheWorldList();
+        AllianceGroupsTree tree = allianceGroupsPanel.getTree();
+        JList restOfTheWorldList = allianceGroupsPanel.getRestOfTheWorldList();
 
         DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
 
