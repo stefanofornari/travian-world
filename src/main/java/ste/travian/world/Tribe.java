@@ -37,6 +37,12 @@ public enum Tribe {
     GAUL(3), 
     NATURE(4), 
     NATARS(5);
+
+    public static final String TRIBE_ROMAN  = "Roman" ;
+    public static final String TRIBE_TEUTON = "Teuton";
+    public static final String TRIBE_GAUL   = "Gaul"  ;
+    public static final String TRIBE_NATURE = "Nature";
+    public static final String TRIBE_NATARS = "Natars";
     
     private int tid;
     
@@ -49,19 +55,21 @@ public enum Tribe {
     }
     
     public String getName() {
+        assert (tid>=1 && tid<=5): "invalid tid: " + tid;
+        
         if (tid == 1) {
-            return "Roman";
+            return TRIBE_ROMAN;
         } else if (tid == 2) {
-            return "Teuton";
+            return TRIBE_TEUTON;
         } else if (tid == 3) {
-            return "Gaul";
+            return TRIBE_GAUL;
         } else if (tid == 4) {
-            return "Nature";
+            return TRIBE_NATURE;
         } else if (tid == 5) {
-            return "Natars";
+            return TRIBE_NATARS;
         }
         
-        return "";
+        throw new IllegalStateException("tid not in rage: " + tid);
     }
     
     public static Tribe getTribeFromId(int tid) throws IllegalArgumentException {
