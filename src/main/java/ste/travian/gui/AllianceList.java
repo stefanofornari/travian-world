@@ -27,7 +27,6 @@
  */
 package ste.travian.gui;
 
-import java.awt.Dimension;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -65,7 +64,7 @@ public class AllianceList
         setLayoutOrientation(JList.HORIZONTAL_WRAP);
         setVisibleRowCount(-1);
         setFixedCellWidth(90);
-
+        
         setTransferHandler(new TransferHandler("selectedAlliance"));
         setDragEnabled(true);
 
