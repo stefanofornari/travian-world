@@ -29,16 +29,13 @@ package ste.travian.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.Toolkit;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.MutableTreeNode;
@@ -51,12 +48,10 @@ public class AllianceGroupsPanel extends JPanel {
     private JList restOfTheWorldList;
     private Toolkit toolkit = Toolkit.getDefaultToolkit();
 
-    public AllianceGroupsPanel(Frame frame) {
+    public AllianceGroupsPanel() {
         super(new BorderLayout());
 
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        tree = new AllianceGroupsTree(frame);
+        tree = new AllianceGroupsTree();
         add(new JScrollPane(tree), BorderLayout.LINE_START);
 
         JPanel panel = new JPanel();
