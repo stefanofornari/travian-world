@@ -27,8 +27,9 @@
  */
 package ste.travian.gui;
 
-import java.awt.datatransfer.StringSelection;
+import java.awt.Point;
 import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
 import java.awt.dnd.DragGestureListener;
@@ -37,10 +38,19 @@ import java.awt.dnd.DragSourceDragEvent;
 import java.awt.dnd.DragSourceDropEvent;
 import java.awt.dnd.DragSourceEvent;
 import java.awt.dnd.DragSourceListener;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
+import java.io.IOException;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
-import javax.swing.TransferHandler;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import org.jdesktop.swingx.decorator.SortOrder;
 
 /**
  * This is a JList that just defines the methods required to support DnD with
@@ -50,7 +60,7 @@ import javax.swing.TransferHandler;
  */
 public class AllianceList
         extends org.jdesktop.swingx.JXList
-        implements DragGestureListener, DragSourceListener {
+        implements DragGestureListener, DropTargetListener, DragSourceListener {
 
     DragSource ds;
 
@@ -65,11 +75,10 @@ public class AllianceList
         setVisibleRowCount(-1);
         setFixedCellWidth(90);
         
-        setTransferHandler(new TransferHandler("selectedAlliance"));
-        setDragEnabled(true);
-
         ds = new DragSource();
         ds.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, this);
+
+        DropTarget dropTarget = new DropTarget(this, this);
     }
 
     /**
@@ -78,14 +87,14 @@ public class AllianceList
      *
      * @return the seleceted alliance or null
      */
-    public String getSelectedAlliance() {
-        return (String) getSelectedValue();
+    public AllianceDnDInfo getSelectedAlliance() {
+        return (AllianceDnDInfo) getSelectedValue();
     }
 
     // ----------------------------------------------------- DragGestureListener
     public void dragGestureRecognized(DragGestureEvent e) {
         System.out.println("Drag Gesture Recognized!");
-        Transferable t = new StringSelection(getSelectedAlliance());
+        Transferable t = getSelectedAlliance();
         ds.startDrag(e, DragSource.DefaultMoveDrop, t, this);
     }
 
@@ -104,15 +113,69 @@ public class AllianceList
     }
 
     public void dragDropEnd(DragSourceDropEvent e) {
-        System.out.print("Drag Drop End: ");
         if (e.getDropSuccess()) {
-            System.out.println("Succeeded");
-        } else {
-            System.out.println("Failed");
+            ((DefaultListModel)getModel()).removeElementAt(getSelectedIndex());
         }
     }
 
     public void dropActionChanged(DragSourceDragEvent e) {
         System.out.println("Drop Action Changed");
+    }
+    
+    // ------------------------------------------------------ DropTargetListener
+
+    /**
+     * DropTargetListener interface method - What we do when drag is released
+     */
+    public void drop(DropTargetDropEvent e) {
+        try {
+            Transferable tr = e.getTransferable();
+
+            //flavor not supported, reject drop
+            if (!tr.isDataFlavorSupported(AllianceDnDInfo.INFO_FLAVOR)) {
+                e.rejectDrop();
+                return;
+            }
+
+            DefaultListModel model = (DefaultListModel) getModel();
+
+            //cast into appropriate data type
+            AllianceDnDInfo info =
+                (AllianceDnDInfo)tr.getTransferData(AllianceDnDInfo.INFO_FLAVOR);
+
+            int i = 0;
+            String alliance = null;
+            for (; i<model.size(); ++i) {
+                alliance = String.valueOf(model.elementAt(i));
+                if (alliance.compareTo(info.getName())>0) {
+                    break;
+                }
+            }
+            model.add(i, info);
+            setSelectedIndex(i);
+            ensureIndexIsVisible(i);
+
+            e.getDropTargetContext().dropComplete(true);
+        } catch (Exception ex) {
+            e.rejectDrop();
+        }
+    }
+
+    /** DropTargetListener interface method */
+    public void dragEnter(DropTargetDragEvent e) {
+    }
+
+    /** DropTargetListener interface method */
+    public void dragExit(DropTargetEvent e) {
+    }
+
+    /** DropTargetListener interface method */
+    public void dragOver(DropTargetDragEvent e) {
+        e.acceptDrag(DnDConstants.ACTION_MOVE);
+
+    }
+
+    /** DropTargetListener interface method */
+    public void dropActionChanged(DropTargetDragEvent e) {
     }
 }

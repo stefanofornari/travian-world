@@ -25,100 +25,71 @@
  * reasonably feasible for technical reasons, the Appropriate Legal Notices must
  * display the words "Derived from Travian world".
  */
-
 package ste.travian.gui;
-
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Vector;
+import javax.swing.JComponent;
 
 public class AllianceDnDInfo implements Transferable, Serializable {
 
-  final public static DataFlavor INFO_FLAVOR =
-    new DataFlavor(AllianceDnDInfo.class, "Alliance");
+    final public static DataFlavor INFO_FLAVOR =
+            new DataFlavor(AllianceDnDInfo.class, "Alliance");
+    static DataFlavor flavors[] = {INFO_FLAVOR};
+    private String name;
 
-  static DataFlavor flavors[] = { INFO_FLAVOR };
-
-  private String name = null;
-  private AllianceDnDInfo parent = null;
-  private Vector children = null;
-
-
-  public AllianceDnDInfo(String name) {
-    children = new Vector();
-    this.name = name;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void add(AllianceDnDInfo info) {
-    info.setParent(this);
-    children.add(info);
-  }
-
-  public void remove(AllianceDnDInfo info) {
-    info.setParent(null);
-    children.remove(info);
-  }
-
-  public AllianceDnDInfo getParent() {
-    return parent;
-  }
-
-  public void setParent(AllianceDnDInfo parent) {
-    parent = parent;
-  }
-
-  public Vector getChildren() {
-    return children;
-  }
-
-  public Object clone() {
-    return new AllianceDnDInfo(name);
-  }
-
-  public String toString() {
-    return name;
-  }
-
-  // -------------------------------------------------------------- Transferable
-
-  public boolean isDataFlavorSupported(DataFlavor df) {
-    return df.equals(INFO_FLAVOR);
-  }
-
-  /** implements Transferable interface */
-  public Object getTransferData(DataFlavor df)
-      throws UnsupportedFlavorException, IOException {
-    if (df.equals(INFO_FLAVOR)) {
-      return this;
+    public AllianceDnDInfo(String name) {
+        this.name = name;
     }
-    else throw new UnsupportedFlavorException(df);
-  }
 
-  /** implements Transferable interface */
-  public DataFlavor[] getTransferDataFlavors() {
-    return flavors;
-  }
+    public String getName() {
+        return name;
+    }
 
-  // -------------------------------------------------------------- Serializable
+    public Object clone() {
+        return new AllianceDnDInfo(name);
+    }
 
-   private void writeObject(java.io.ObjectOutputStream out) throws IOException {
-     out.defaultWriteObject();
-   }
+    /**
+     *
+     * @return a string representation of this object
+     *
+     * @Override
+     */
+    public String toString() {
+        return name;
+    }
 
-   private void readObject(java.io.ObjectInputStream in)
-     throws IOException, ClassNotFoundException {
-     in.defaultReadObject();
-   }
+    // -------------------------------------------------------------- Transferable
+    public boolean isDataFlavorSupported(DataFlavor df) {
+        return df.equals(INFO_FLAVOR);
+    }
+
+    /** implements Transferable interface */
+    public Object getTransferData(DataFlavor df)
+            throws UnsupportedFlavorException, IOException {
+        if (df.equals(INFO_FLAVOR)) {
+            return this;
+        } else {
+            throw new UnsupportedFlavorException(df);
+        }
+    }
+
+    /** implements Transferable interface */
+    public DataFlavor[] getTransferDataFlavors() {
+        return flavors;
+    }
+
+    // -------------------------------------------------------------- Serializable
+    private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+    }
+
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+    }
 }

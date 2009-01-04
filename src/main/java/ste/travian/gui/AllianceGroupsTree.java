@@ -44,6 +44,7 @@ public class AllianceGroupsTree extends JTree
     /** Stores the selected node info */
     protected TreePath selectedTreePath = null;
     protected DefaultMutableTreeNode selectedNode = null;
+    
     /** Variables needed for DnD */
     private DragSource dragSource = null;
 
@@ -83,6 +84,8 @@ public class AllianceGroupsTree extends JTree
         return selectedNode;
     }
 
+    // ----------------------------------------------------- DragGestureListener
+
     /** DragGestureListener interface method */
     public void dragGestureRecognized(DragGestureEvent e) {
         //Get the selected node
@@ -106,8 +109,21 @@ public class AllianceGroupsTree extends JTree
         }
     }
 
+    // ------------------------------------------------------ DragSourceListener
+
     /** DragSourceListener interface method */
     public void dragDropEnd(DragSourceDropEvent e) {
+        //
+        // we need to delete the node from the old parent...
+        //
+        if (e.getDropSuccess()) {
+            DefaultMutableTreeNode oldParent =
+                    (DefaultMutableTreeNode) getSelectedNode().getParent();
+
+            oldParent.remove(getSelectedNode());
+
+            ((DefaultTreeModel)getModel()).reload(oldParent);
+        }
     }
 
     /** DragSourceListener interface method */
@@ -126,7 +142,11 @@ public class AllianceGroupsTree extends JTree
     public void dragExit(DragSourceEvent e) {
     }
 
-    /** DropTargetListener interface method - What we do when drag is released */
+    // ------------------------------------------------------ DropTargetListener
+
+    /** 
+     * DropTargetListener interface method - What we do when drag is released
+     */
     public void drop(DropTargetDropEvent e) {
         try {
             Transferable tr = e.getTransferable();
@@ -134,10 +154,13 @@ public class AllianceGroupsTree extends JTree
             //flavor not supported, reject drop
             if (!tr.isDataFlavorSupported(AllianceDnDInfo.INFO_FLAVOR)) {
                 e.rejectDrop();
+                return;
             }
 
+            DefaultTreeModel model = (DefaultTreeModel) getModel();
+
             //cast into appropriate data type
-            AllianceDnDInfo childInfo =
+            AllianceDnDInfo info =
                 (AllianceDnDInfo)tr.getTransferData(AllianceDnDInfo.INFO_FLAVOR);
 
             //get new parent node
@@ -151,32 +174,29 @@ public class AllianceGroupsTree extends JTree
                 return;
             }
 
-
             DefaultMutableTreeNode newParent =
                 (DefaultMutableTreeNode) destinationPath.getLastPathComponent();
 
-            //get old parent node
-            DefaultMutableTreeNode oldParent =
-                (DefaultMutableTreeNode) getSelectedNode().getParent();
+            DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(info);
+            newChild.setAllowsChildren(false);
 
-            int action = e.getDropAction();
-            //make new child node
-            DefaultMutableTreeNode newChild = new DefaultMutableTreeNode(childInfo);
-
-            try {
-                oldParent.remove(getSelectedNode());
-                newParent.add(newChild);
-
-                e.acceptDrop(DnDConstants.ACTION_MOVE);
-            } catch (java.lang.IllegalStateException ils) {
-                e.rejectDrop();
+            //
+            // We insert the node in its alphabetical position
+            //
+            int i = 0;
+            String node = null;
+            for (; i<newParent.getChildCount(); ++i) {
+                node = String.valueOf(newParent.getChildAt(i));
+                if (node.compareTo(info.getName()) > 0) {
+                    break;
+                }
             }
-
+            newParent.insert(newChild, i);
+            
             e.getDropTargetContext().dropComplete(true);
 
             //expand nodes appropriately - this probably isnt the best way...
-            DefaultTreeModel model = (DefaultTreeModel) getModel();
-            model.reload(oldParent);
+            
             model.reload(newParent);
             TreePath parentPath = new TreePath(newParent.getPath());
             expandPath(parentPath);
@@ -187,15 +207,15 @@ public class AllianceGroupsTree extends JTree
         }
     } //end of method
 
-    /** DropTaregetListener interface method */
+    /** DropTargetListener interface method */
     public void dragEnter(DropTargetDragEvent e) {
     }
 
-    /** DropTaregetListener interface method */
+    /** DropTargetListener interface method */
     public void dragExit(DropTargetEvent e) {
     }
 
-    /** DropTaregetListener interface method */
+    /** DropTargetListener interface method */
     public void dragOver(DropTargetDragEvent e) {
         //
         //set cursor location. Needed in setCursor method
@@ -217,9 +237,11 @@ public class AllianceGroupsTree extends JTree
         }
     }
 
-    /** DropTaregetListener interface method */
+    /** DropTargetListener interface method */
     public void dropActionChanged(DropTargetDragEvent e) {
     }
+
+    // --------------------------------------------------- TreeSelectionListener
 
     /** TreeSelectionListener - sets selected node */
     public void valueChanged(TreeSelectionEvent evt) {
@@ -255,12 +277,18 @@ public class AllianceGroupsTree extends JTree
             return "Destination cannot be same as source";
         }
 
-        if (dropper.isDescendant(destination)) {
-            return "Destination node cannot be a descendant.";
-        }
+        //
+        // If dropper is null, it is a DnD from the alliance list; if dropper
+        // is not null, it is a DnD from the tree
+        //
+        if (dropper != null) {
+            if (dropper.isDescendant(destination)) {
+                return "Destination node cannot be a descendant.";
+            }
 
-        if (dropper.getParentPath().equals(destination)) {
-            return "Destination node cannot be a parent.";
+            if (dropper.getParentPath().equals(destination)) {
+                return "Destination node cannot be a parent.";
+            }
         }
 
         return null;

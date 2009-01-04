@@ -185,19 +185,14 @@ implements ChartMouseListener {
 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Groups");
         DefaultMutableTreeNode groupNode = null;
-        DefaultMutableTreeNode allianceNode = null;
+        AllianceDnDInfo info = null;
         for(String group: groups.keySet()) {
             groupNode = new DefaultMutableTreeNode(group);
             groupNode.setAllowsChildren(true);
             root.add(groupNode);
             for (String alliance: groups.get(group)) {
-                /*
-                allianceNode =  new DefaultMutableTreeNode(alliance);
-                allianceNode.setAllowsChildren(false);
-                allianceNode.setUserObject(new AllianceDnDInfo(alliance));
-                groupNode.add(allianceNode);
-                */
-                ((DefaultListModel)restOfTheWorldList.getModel()).addElement(alliance);
+                info = new AllianceDnDInfo(alliance);
+                ((DefaultListModel)restOfTheWorldList.getModel()).addElement(info);
             }
         }
         model.setRoot(root);
