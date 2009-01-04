@@ -30,21 +30,28 @@ package ste.travian.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
+import org.jdesktop.swingx.JXCollapsiblePane;
+import org.jdesktop.swingx.JXDialog;
 import ste.travian.TravianException;
 
 /**
@@ -52,6 +59,8 @@ import ste.travian.TravianException;
  * @author ste
  */
 public class TravianWorldFrame extends JFrame {
+
+    public static final String PROPERTY_COLLAPTION_STATE = "collapsed";
     
     private JButton mapLoadButton;
     private JPanel urlPanel;
@@ -138,88 +147,107 @@ public class TravianWorldFrame extends JFrame {
     public void statusMessage(String msg) {
         statusText.setText(msg);
     }
-    
-    public void error(final String msg, final Throwable t) {
-        EventQueue.invokeLater(
-            new Runnable() {
-                public void run() {
-                    Object[] message = new Object[1];
-                    String string;
-
-                    if (msg != null) {
-                        string = msg + "\n" + t.getMessage();
-                    } else {
-                        string = t.getMessage();
-                    }
-
-                    Object[] options = { "Dismiss", "Stack trace" };
-
-                    // Show the MODAL dialog
-                    int selected = JOptionPane.showOptionDialog(
-                                       TravianWorldFrame.this,
-                                       new String[] {string}, 
-                                       "Error",
-                                       JOptionPane.YES_NO_OPTION, 
-                                       JOptionPane.ERROR_MESSAGE,
-                                       null, 
-                                       options, 
-                                       options[0]
-                    
-                    );
-
-                    if (selected == 1) {
-                        showStackTrace(msg, t);
-                    }
-                }
-            }
-        
-        );
-    }
 
     public WorldController getController() {
         return c;
     }
 
-    // ---------------------------------------------------------- Private mthods
+    public void error(final String msg, final Throwable t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
 
-    private void showStackTrace(final String msg, final Throwable t) {
-        EventQueue.invokeLater(
-            new Runnable() {
-                public void run() {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    t.printStackTrace(pw);
+        JLabel icon = new JLabel();
+        icon.setIcon(UIManager.getIcon("OptionPane.errorIcon"));
 
-                    JTextArea text = new JTextArea(sw.toString(), 60, 80);
-                    JScrollPane stext = new JScrollPane(text);
-                    stext.setPreferredSize(new Dimension(600, 300));
-                    text.setCaretPosition(0);
-                    text.setEditable(false);
+        JLabel message = new JLabel();
+        if (msg != null) {
+            message.setText(msg + " ");
+        } else {
+            message.setText(t.getMessage() + " ");
+        }
 
-                    Object[] message = new Object[2];
-                    String string;
+        JTextArea text = new JTextArea(sw.toString(), 60, 80);
+        text.setCaretPosition(0);
+        text.setEditable(false);
+        JScrollPane stext = new JScrollPane(text);
+        stext.setPreferredSize(new Dimension(500, 200));
 
-                    if (msg != null) {
-                        string = msg + "\n" + t.getMessage();
-                    } else {
-                        string = t.getMessage();
-                    }
+        Box content = Box.createHorizontalBox();
+        JXDialog dialog = new JXDialog(content);
 
-                    message[0] = string;
-                    message[1] = stext;
+        JXCollapsiblePane cp = new JXCollapsiblePane(new BorderLayout());
+        cp.setAnimated(false);
+        cp.addPropertyChangeListener(new CollapseListener(dialog));
+        cp.add(stext, BorderLayout.CENTER);
 
-                    // Show the MODAL dialog
-                    JOptionPane.showMessageDialog(
-                        TravianWorldFrame.this, 
-                        message, 
-                        "Stack trace",
-                        JOptionPane.ERROR_MESSAGE
-                    
-                    );
-                }
-            }
-        
+        // get the built-in toggle action
+        Action toggleAction = cp.getActionMap().
+            get(JXCollapsiblePane.TOGGLE_ACTION);
+
+        // use the collapse/expand icons from the JTree UI
+        toggleAction.putValue(
+            JXCollapsiblePane.COLLAPSE_ICON,
+            UIManager.getIcon("Tree.expandedIcon")
         );
+        toggleAction.putValue(
+           JXCollapsiblePane.EXPAND_ICON,
+           UIManager.getIcon("Tree.collapsedIcon")
+        );
+
+        cp.setCollapsed(true);
+
+        JButton toggle = new JButton (toggleAction);
+        toggle.setText("");
+        toggle.setSize(new Dimension(40,40));
+
+        Box messagePanel = Box.createHorizontalBox();
+        messagePanel.add(message);
+        messagePanel.add(toggle);
+
+        JPanel exceptionPanel = new JPanel(new BorderLayout());
+        exceptionPanel.add(messagePanel, BorderLayout.PAGE_START);
+        exceptionPanel.add(cp, BorderLayout.PAGE_END);
+
+        icon.setAlignmentY(TOP_ALIGNMENT);
+        exceptionPanel.setAlignmentY(TOP_ALIGNMENT);
+        content.add(icon);
+        content.add(Box.createRigidArea(new Dimension(5, 5)));
+        content.add(exceptionPanel);
+
+
+        // Show the MODAL dialog
+
+        dialog.setModal(true);
+        dialog.pack();
+        dialog.setVisible(true);
+        dialog.setLocationRelativeTo(TravianWorldFrame.this);
     }
+
+    private class CollapseListener 
+        implements PropertyChangeListener {
+        private JDialog dialog;
+
+        public CollapseListener(JDialog dialog) {
+            this.dialog = dialog;
+        }
+
+        public void propertyChange(PropertyChangeEvent e) {
+            if (PROPERTY_COLLAPTION_STATE.equals(e.getPropertyName())) {
+                dialog.pack();
+            }
+        }
+
+    }
+
+    public static void main(String[] args) {
+        try{
+            throw new Exception("This is an error");
+        } catch (Exception e) {
+            new TravianWorldFrame(new WorldController()).error("error", e);
+        }
+
+    }
+
 }
 
