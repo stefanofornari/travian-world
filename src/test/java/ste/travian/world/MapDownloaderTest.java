@@ -53,6 +53,14 @@ public class MapDownloaderTest extends TestCase {
     }            
 
     public void testDownloadAsString() throws Throwable {
+        try {
+            MapDownloader downloader = new MapDownloader(null);
+            fail("only not null url must be accepted");
+            downloader = new MapDownloader("none://wrongurl");
+            fail("only valid url must be accepted");
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
         MapDownloader downloader = new MapDownloader(mapURL);
         
         String map = downloader.downloadMapAsString();

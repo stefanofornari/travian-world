@@ -133,6 +133,12 @@ public class WorldStoreTest extends TestCase {
         }
         
         WorldStore world = new WorldStore();
+        try {
+            world.updateWorld(null);
+            fail("the input stream in updateWorld cannot be null!");
+        } catch (IllegalArgumentException e) {
+            // OK
+        }
         world.updateWorld(mapReader.downloadMapAsReader());
         
         StoreConnection c = null;
