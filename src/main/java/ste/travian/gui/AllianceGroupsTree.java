@@ -41,8 +41,6 @@ import java.io.*;
 public class AllianceGroupsTree extends JTree
         implements TreeSelectionListener, DragGestureListener, DropTargetListener, DragSourceListener {
 
-    /** Stores the parent Frame of the component */
-    private Frame parent = null;
     /** Stores the selected node info */
     protected TreePath selectedTreePath = null;
     protected DefaultMutableTreeNode selectedNode = null;
@@ -50,11 +48,11 @@ public class AllianceGroupsTree extends JTree
     private DragSource dragSource = null;
 
     /** Constructor
-    @param root The root node of the tree
-    @param parent parent JFrame of the JTree */
-    public AllianceGroupsTree(Frame parent) {
+     * @param root The root node of the tree
+
+     */
+    public AllianceGroupsTree() {
         super();
-        this.parent = parent;
 
         setEditable(true);
         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -150,13 +148,6 @@ public class AllianceGroupsTree extends JTree
             if (msg != null) {
                 e.rejectDrop();
 
-                SwingUtilities.invokeLater(new Runnable() {
-
-                    public void run() {
-                        JOptionPane.showMessageDialog(
-                                parent, msg, "Error Dialog", JOptionPane.ERROR_MESSAGE);
-                    }
-                });
                 return;
             }
 
