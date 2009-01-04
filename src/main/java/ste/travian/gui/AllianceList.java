@@ -50,7 +50,7 @@ import javax.swing.TransferHandler;
  * @author ste
  */
 public class AllianceList
-        extends JList
+        extends org.jdesktop.swingx.JXList
         implements DragGestureListener, DragSourceListener {
 
     DragSource ds;
