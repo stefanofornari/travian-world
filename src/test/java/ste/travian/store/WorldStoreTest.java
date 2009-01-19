@@ -188,6 +188,17 @@ public class WorldStoreTest extends TestCase {
         Tile tile = world.getTile(290, 397);
         
         assertEquals(3094, tile.getId());
+
+        Map<String,ArrayList<String>> groups = world.getAllianceGroups();
+        ArrayList<String> alliances = null;
+        assertNotNull(alliances = groups.get("group1"));
+        assertTrue(alliances.contains("**B-A**"));
+
+        assertNotNull(alliances = groups.get("group2"));
+        assertTrue(alliances.contains("Berserk+"));
+
+        assertNotNull(alliances = groups.get("group3"));
+        assertEquals(0, alliances.size());
     }
 
     public void testAlliances() throws Exception {
@@ -209,9 +220,6 @@ public class WorldStoreTest extends TestCase {
         assertEquals("Berserk+", alliances.get(new Integer(436)));
     }
 
-    //
-    // TODO: we now test the read only; we need to add write also
-    //
     public void testAllianceGroups() throws Exception {
         if (!worldUpdated) {
             testUpdateWorld();
@@ -220,17 +228,15 @@ public class WorldStoreTest extends TestCase {
 
         WorldStore store = new WorldStore();
         Map<String,ArrayList<String>> groups = store.readAllianceGroups();
+        ArrayList<String> group = null;
 
-        assertEquals(1, groups.size());
-        assertTrue(groups.containsKey(WorldStore.REST_OF_THE_WORLD_GROUP));
-        
-        ArrayList<String> group = groups.get(WorldStore.REST_OF_THE_WORLD_GROUP);
-        assertEquals(6, group.size());
+        assertEquals(4, groups.size());
 
-        //
-        // Let's check some values
-        //
-        assertTrue(group.contains("Berserk+"));
+        assertNotNull(group = groups.get("group1"));
+
+        assertEquals(2, group.size());
+
+        assertTrue(group.contains("**B-A**"));
         assertTrue(group.contains("T[SD]"));
     }
 
