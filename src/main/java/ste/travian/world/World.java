@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -48,6 +49,8 @@ public class World {
     private List<String> alliances;
     private boolean needAlliancesSort;
 
+    private Map<String,ArrayList<String>> allianceGroups;
+
     public World() {
         map = new HashMap<String, Tile>();
         maxX = Integer.MIN_VALUE;
@@ -57,6 +60,7 @@ public class World {
         
         alliances = new ArrayList<String>();
         needAlliancesSort = false;
+        allianceGroups = new HashMap<String, ArrayList<String>>();
     }
 
     /**
@@ -160,6 +164,24 @@ public class World {
             needAlliancesSort = false;
         }
         return alliances.toArray(new String[alliances.size()]);
+    }
+
+    /**
+     * Sets alliance groups
+     * 
+     * @param groups - can be null
+     */
+    public void setAllianceGroups(Map<String,ArrayList<String>> groups) {
+        allianceGroups = groups;
+    }
+
+    /**
+     * Gets the alliance groups
+     *
+     * @return the alliance groups
+     */
+    public Map<String,ArrayList<String>> getAllianceGroups() {
+        return allianceGroups;
     }
 
     // ----------------------------------------------------------- Private methods
