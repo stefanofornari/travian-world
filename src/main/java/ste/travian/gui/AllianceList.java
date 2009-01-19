@@ -91,6 +91,30 @@ public class AllianceList
         return (AllianceDnDInfo) getSelectedValue();
     }
 
+    /**
+     * Adds an alliance to the list respecting the alphabetical order.
+     *
+     * @param info the alliance to add in the form of a DnDable object
+     *
+     * @return the position the item has been inserted
+     */
+    public int addAlliance(AllianceDnDInfo info) {
+
+        DefaultListModel model = (DefaultListModel) getModel();
+
+        int i = 0;
+        String alliance = null;
+        for (; i<model.size(); ++i) {
+            alliance = String.valueOf(model.elementAt(i));
+            if (alliance.compareTo(info.getName())>0) {
+                break;
+            }
+        }
+        model.add(i, info);
+
+        return i;
+    }
+
     // ----------------------------------------------------- DragGestureListener
     public void dragGestureRecognized(DragGestureEvent e) {
         System.out.println("Drag Gesture Recognized!");
@@ -137,23 +161,12 @@ public class AllianceList
                 return;
             }
 
-            DefaultListModel model = (DefaultListModel) getModel();
+            int pos = addAlliance(
+                (AllianceDnDInfo)tr.getTransferData(AllianceDnDInfo.INFO_FLAVOR)
+            );
 
-            //cast into appropriate data type
-            AllianceDnDInfo info =
-                (AllianceDnDInfo)tr.getTransferData(AllianceDnDInfo.INFO_FLAVOR);
-
-            int i = 0;
-            String alliance = null;
-            for (; i<model.size(); ++i) {
-                alliance = String.valueOf(model.elementAt(i));
-                if (alliance.compareTo(info.getName())>0) {
-                    break;
-                }
-            }
-            model.add(i, info);
-            setSelectedIndex(i);
-            ensureIndexIsVisible(i);
+            setSelectedIndex(pos);
+            ensureIndexIsVisible(pos);
 
             e.getDropTargetContext().dropComplete(true);
         } catch (Exception ex) {
