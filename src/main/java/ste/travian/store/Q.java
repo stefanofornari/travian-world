@@ -83,16 +83,22 @@ public class Q {
             " select * from "                        +
             ALLIANCE_TABLE_NAME                      +
             " order by name"                         ;
-    public static final String SQL_GET_ALL_ALLIANCE_GROUPS =
-            "select g.name, a.name from "                  +
-            GROUP_TABLE_NAME                               +
-            " g, "                                         +
-            ALLIANCE_TABLE_NAME                            +
-            " a, "                                         +
-            ALLIANCE_GROUP_TABLE_NAME                      +
-            " ag where "                                   +
-            "g.id=ag.gid and a.id=ag.aid "                 +
-            "order by 1, 2"                                   ;
+    public static final String SQL_GET_NOT_EMPTY_ALLIANCE_GROUPS =
+            "select g.name, a.name from "                        +
+            GROUP_TABLE_NAME                                     +
+            " g, "                                               +
+            ALLIANCE_TABLE_NAME                                  +
+            " a, "                                               +
+            ALLIANCE_GROUP_TABLE_NAME                            +
+            " ag where "                                         +
+            "g.id=ag.gid and a.id=ag.aid "                       +
+            "order by 1, 2"                                      ;
+    public static final String SQL_GET_EMPTY_ALLIANCE_GROUPS =
+            "select name from "                              +
+            GROUP_TABLE_NAME                                 +
+            " where id not in (select distinct gid from "    +
+            ALLIANCE_GROUP_TABLE_NAME                        +
+            ")"                                              ;
     public static final String SQL_GET_REST_OF_THE_WORLD_ALLIANCES =
             "select name from "                                    +
             ALLIANCE_TABLE_NAME                                    +
