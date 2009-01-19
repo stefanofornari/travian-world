@@ -189,24 +189,22 @@ implements ChartMouseListener {
         });
     }
 
-    public static void main(String[] args) throws Exception {
-        //
-        // Load the existing map
-        //
-        /*
+    public void showMap() {
         EventQueue.invokeLater(
             new Runnable() {
                 public void run() {
                     try {
-                        c.load();
-                        showMap(c.getWorldPanel());
+                        load();
+                        mainWindow.showMap(getWorldPanel());
                     } catch (Exception e) {
-                        error("Error creating the map", e);
+                        mainWindow.error("Error creating the map", e);
                     }
                 }
             }
         );
-         */
+    }
+
+    public static void main(String[] args) throws Exception {
         WorldController c = new WorldController();
 
         //
