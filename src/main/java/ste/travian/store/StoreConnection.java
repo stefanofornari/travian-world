@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -150,15 +151,43 @@ public class StoreConnection {
             c = null;
         }
     }
-    
+
     public void executeUpdate(String sql) throws SQLException {
         Connection c = getConnection();
-        
+
         Statement s = null;
         try {
             s = c.createStatement();
-            
+
             s.executeUpdate(sql);
+        } finally {
+            if (s != null) {
+                try { s.close(); } catch (Exception e) {}
+            }
+        }
+    }
+    /**
+     * Executes a prepared statement
+     *
+     * @param sql the prepared statement
+     * @param params the parameters for the statement
+     * @throws java.sql.SQLException in case of errors
+     */
+    public void executeUpdate(String sql, Object[] params) throws SQLException {
+        Connection c = getConnection();
+        
+        PreparedStatement s = null;
+        try {
+            s = c.prepareStatement(sql);
+
+            if (params != null) {
+                int i = 0;
+                for (Object p: params) {
+                    s.setObject(++i, p);
+                }
+            }
+            
+            s.executeUpdate();
         } finally {
             if (s != null) {
                 try { s.close(); } catch (Exception e) {}
