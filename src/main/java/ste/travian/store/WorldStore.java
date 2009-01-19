@@ -171,6 +171,8 @@ public class WorldStore {
                 }
             }
         }
+
+        world.setAllianceGroups(readAllianceGroups());
         
         return world;
     }
@@ -306,9 +308,9 @@ public class WorldStore {
             rs.close(); rs = null;
 
             //
-            // Now let's get the groups
+            // Now let's get the groups with at least one alliance
             //
-            rs = sc.executeQuery(Q.SQL_GET_ALL_ALLIANCE_GROUPS);
+            rs = sc.executeQuery(Q.SQL_GET_NOT_EMPTY_ALLIANCE_GROUPS);
 
             while (rs.next()) {
                 groupName = rs.getString(1);
@@ -318,6 +320,16 @@ public class WorldStore {
                     ret.put(groupName, group);
                 }
                 group.add(rs.getString(2));
+            }
+            rs.close(); rs = null;
+
+            //
+            // Now let's get the groups with no alliance
+            //
+            rs = sc.executeQuery(Q.SQL_GET_EMPTY_ALLIANCE_GROUPS);
+
+            while (rs.next()) {
+                ret.put(rs.getString(1), new ArrayList<String>());
             }
 
             return ret;
