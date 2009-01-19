@@ -32,6 +32,11 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JList;
@@ -39,14 +44,16 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import org.jdesktop.swingx.JXDialog;
+import org.jdesktop.swingx.action.BoundAction;
 
 public class AllianceGroupsPanel extends JPanel {
 
+    public static final String REST_OF_THE_WORLD_GROUP = "Rest of the world";
+
     private AllianceGroupsTree tree;
-    private JList restOfTheWorldList;
+    private AllianceList restOfTheWorldList;
     private Toolkit toolkit = Toolkit.getDefaultToolkit();
 
     public AllianceGroupsPanel() {
@@ -64,7 +71,14 @@ public class AllianceGroupsPanel extends JPanel {
             }
         });
         panel.add(button);
-        panel.add(new JButton("-"));
+
+        button = new JButton("-");
+        button.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                deleteGroup();
+            }
+        });
+        panel.add(button);
         panel.setPreferredSize(new Dimension(40, 100));
         add(panel, BorderLayout.CENTER);
 
@@ -72,30 +86,52 @@ public class AllianceGroupsPanel extends JPanel {
         JScrollPane pane = new JScrollPane(restOfTheWorldList);
         pane.setPreferredSize(new Dimension(200, 300));
         add(pane, BorderLayout.LINE_END);
-    }
 
-    /** Remove all nodes except the root node. */
-    public void clear() {
-        TreeModel model = tree.getModel();
-        ((DefaultMutableTreeNode)model.getRoot()).removeAllChildren();
-    }
+        ActionMap actions = getActionMap();
+        BoundAction action = new BoundAction(
+            "OK",
+            JXDialog.EXECUTE_ACTION_COMMAND
+        );
+        action.registerCallback(this, "doExecute");
+        actions.put(JXDialog.EXECUTE_ACTION_COMMAND, action);
+     }
 
-    /** Remove the currently selected node. */
-    public void removeCurrentNode() {
+    /**
+     * Delete the selected group if not the "rest of the world" group.
+     * All children will be added back to the alliance list
+     */
+    public void deleteGroup() {
+        DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+
         TreePath currentSelection = tree.getSelectionPath();
         if (currentSelection != null) {
             DefaultMutableTreeNode currentNode = (DefaultMutableTreeNode) (currentSelection.getLastPathComponent());
-            MutableTreeNode parent = (MutableTreeNode) (currentNode.getParent());
-            if (parent != null) {
-                ((DefaultTreeModel)tree.getModel()).removeNodeFromParent(currentNode);
-                return;
+            
+            if (currentNode.getParent().equals(model.getRoot())) {
+                AllianceDnDInfo info = null;
+                if (!REST_OF_THE_WORLD_GROUP.equals(currentNode.getUserObject())) {
+                    //
+                    // Let's add back the children to the alliance list
+                    //
+                    Enumeration nodes = currentNode.children();
+                    while (nodes.hasMoreElements()) {
+                        info = (AllianceDnDInfo)((DefaultMutableTreeNode)nodes.nextElement()).getUserObject();
+                        restOfTheWorldList.addAlliance(info);
+                    }
+                    model.removeNodeFromParent(currentNode);
+                    return;
+                }
             }
+
         }
 
         // Either there was no selection, or the root was selected.
         toolkit.beep();
     }
 
+    /**
+     * Adds a new group of alliances with a default name
+     */
     public void addGroup() {
         DefaultMutableTreeNode node = null;
         DefaultMutableTreeNode newNode = new DefaultMutableTreeNode("New group");
@@ -124,5 +160,35 @@ public class AllianceGroupsPanel extends JPanel {
 
     public JList getRestOfTheWorldList() {
         return restOfTheWorldList;
+    }
+
+    public void doExecute() {
+        //
+        // TODO: remove test code duplication
+        //
+        AllianceGroupsController c = 
+            ((AllianceGroupsDialog)getRootPane().getParent()).getController();
+
+        Map<String,ArrayList<String>> groups = new HashMap<String,ArrayList<String>>();
+        ArrayList<String> alliances = null;
+
+        DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+
+        DefaultMutableTreeNode root = (DefaultMutableTreeNode)model.getRoot();
+        Enumeration g = root.children();
+        while (g.hasMoreElements()) {
+            DefaultMutableTreeNode group = (DefaultMutableTreeNode)g.nextElement();
+
+            alliances = new ArrayList<String>();
+            groups.put(group.toString(), alliances);
+            Enumeration a = group.children();
+            while (a.hasMoreElements()) {
+                alliances.add(a.nextElement().toString());
+            }
+        }
+       
+        c.updateAllianceGroups(groups);
+        
+        ((JXDialog)getRootPane().getParent()).dispose();
     }
 }
