@@ -28,7 +28,7 @@
 package ste.travian.store;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
+import java.sql.ResultSet;
 import java.util.Properties;
 import junit.framework.TestCase;
 
@@ -38,10 +38,10 @@ import junit.framework.TestCase;
  */
 public class StoreConnectionTest extends TestCase {
     
-    private final String DRIVER   = "org.postgresql.Driver";
-    private final String URL      = "jdbc:postgresql://localhost/travian";
-    private final String USER     = "travian";
-    private final String PASSWORD = "password";
+    private final String DRIVER   = "org.hsqldb.jdbcDriver";
+    private final String URL      = "jdbc:hsqldb:mem:test";
+    private final String USER     = "sa";
+    private final String PASSWORD = "";
     
     public StoreConnectionTest(String testName) {
         super(testName);
@@ -102,6 +102,26 @@ public class StoreConnectionTest extends TestCase {
         value = (String)m.invoke(c);
         assertEquals(PASSWORD, value);
         
+    }
+
+    public void testExecuteUpdateAndQuery() throws Exception {
+        final String[] VALUES = new String[] {
+            "one", "two", "three", "four"
+        };
+        
+        StoreConnection c = new StoreConnection();
+
+        c.executeUpdate("create table t(i int, s varchar(100))");
+        c.executeUpdate("insert into t values(1, '" + VALUES[0] + "')");
+        c.executeUpdate("insert into t values(?, ?)", new Object[] {2,  VALUES[1]});
+        c.executeUpdate("insert into t values(3, '" + VALUES[2] + "')", null);
+        c.executeUpdate("insert into t values(4, '" + VALUES[3] + "')", new Object[0]);
+
+        ResultSet rs = c.executeQuery("select * from t");
+
+        for (int i=1; i<=VALUES.length; ++i) {
+            assertTrue(rs.next()); assertEquals(i, rs.getInt(1)); assertEquals(VALUES[i-1], rs.getString(2));
+        }
     }
 
     //
