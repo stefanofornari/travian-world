@@ -152,50 +152,7 @@ implements ChartMouseListener {
     }
     
     public void showAllianceGroupsDialog() {
-        allianceGroupsPanel = new AllianceGroupsPanel();
-        JXDialog dialog = new JXDialog(allianceGroupsPanel);
-
-        dialog.setModal(true);
-        dialog.setTitle("Alliance groups selection");
-
-        try {
-            populateAllianceGroupsTree();
-        } catch (TravianException e) {
-            mainWindow.error(e.getMessage(), e);
-        }
-
-        dialog.pack();
-        dialog.setVisible(true);
-    }
-
-    public void populateAllianceGroupsTree() throws TravianException {
-        WorldStore store = new WorldStore();
-        try {
-            store.initialize();
-        } catch (Exception e) {
-            throw new TravianException("Unable to initialize the store...", e);
-        }
-        
-        Map<String, ArrayList<String>> groups = store.readAllianceGroups();
-
-        AllianceGroupsTree tree = allianceGroupsPanel.getTree();
-        JList restOfTheWorldList = allianceGroupsPanel.getRestOfTheWorldList();
-
-        DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
-
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Groups");
-        DefaultMutableTreeNode groupNode = null;
-        AllianceDnDInfo info = null;
-        for(String group: groups.keySet()) {
-            groupNode = new DefaultMutableTreeNode(group);
-            groupNode.setAllowsChildren(true);
-            root.add(groupNode);
-            for (String alliance: groups.get(group)) {
-                info = new AllianceDnDInfo(alliance);
-                ((DefaultListModel)restOfTheWorldList.getModel()).addElement(info);
-            }
-        }
-        model.setRoot(root);
+        new AllianceGroupsController().showMainWindow(mainWindow);
     }
     
     // ------------------------------------------------------ ChartMouseListener
