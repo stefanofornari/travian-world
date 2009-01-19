@@ -67,6 +67,13 @@ public class TravianWorldMenuBar extends JMenuBar {
                 TravianWorldMenuBar.this.controller.showAllianceGroupsDialog();
             }
         });
+        world.add(m = new JMenuItem("Show map"));
+        m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, ActionEvent.META_MASK));
+        m.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                TravianWorldMenuBar.this.controller.showMap();
+            }
+        });
         
         add(file);
         add(world);
