@@ -27,6 +27,9 @@
  */
 package ste.travian.world;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import ste.travian.world.Tile;
 import ste.travian.world.World;
 import junit.framework.TestCase;
@@ -38,10 +41,10 @@ import junit.framework.TestCase;
 public class WorldTest extends TestCase {
     
     public static final Tile[] TILES = new Tile[] {
-        new Tile(1, 1, 1, 1, 1, "v01", 1, "u01", 1, "a01", 10),
+        new Tile(1,  1,  1, 1, 1, "v01", 1, "u01", 1, "a01", 10),
         new Tile(2, -1, -1, 2, 2, "v02", 1, "u01", 1, "a01", 20),
-        new Tile(3, -1, 1, 3, 3, "v03", 2, "u02", 2, "a02", 30),
-        new Tile(4, 1, -1, 4, 4, "v04", 3, "u01", 2, "a02", 40)
+        new Tile(3, -1,  1, 3, 3, "v03", 2, "u02", 2, "a02", 30),
+        new Tile(4,  1, -1, 4, 4, "v04", 3, "u01", 2, "a02", 40)
     };
     
     public WorldTest(String testName) {
@@ -96,6 +99,45 @@ public class WorldTest extends TestCase {
         assertEquals(2, alliances.length);
         assertEquals(TILES[0].getAlliance(), alliances[0]);
         assertEquals(TILES[3].getAlliance(), alliances[1]);
+    }
+
+    public void testSetGetAllianceGroups() {
+        World w = new World();
+
+        w.setAllianceGroups(null);
+        assertNull(w.getAllianceGroups());
+
+        Map<String,ArrayList<String>> GROUPS = new HashMap<String,ArrayList<String>>();
+        ArrayList<String> alliances = null;
+
+        alliances = new ArrayList<String>();
+        alliances.add("**B-A**");
+        alliances.add("T[SD]");
+
+        GROUPS.put("group1", alliances);
+
+        alliances = new ArrayList<String>();
+        alliances.add("+SPQRIII");
+        alliances.add("Berserk+");
+
+        GROUPS.put("group2", alliances);
+
+        alliances = new ArrayList<String>();
+        alliances.add("~COLONY~");
+
+        GROUPS.put("group3", alliances);
+
+        w.setAllianceGroups(GROUPS);
+
+        Map<String,ArrayList<String>> groups = w.getAllianceGroups();
+
+        for (String groupName: GROUPS.keySet()) {
+            assertNotNull(alliances = groups.get(groupName));
+            int i = 0;
+            for (String alliance: GROUPS.get(groupName)) {
+                assertEquals(alliance, alliances.get(i++));
+            }
+        }
     }
 
 }
