@@ -30,6 +30,7 @@ package ste.travian.store;
 import java.io.File;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import junit.framework.TestCase;
@@ -45,11 +46,11 @@ import ste.travian.world.World;
 public class WorldStoreTest extends TestCase {
     
     public static final String SQL_COUNT_TILES = 
-        "select count(*) from " + WorldStore.WORLD_TABLE_NAME;
+        "select count(*) from " + Q.WORLD_TABLE_NAME;
     public static final String SQL_GET_TILE = 
-        "select * from " + WorldStore.WORLD_TABLE_NAME + " where id=801";
+        "select * from " + Q.WORLD_TABLE_NAME + " where id=801";
     public static final String SQL_DROP_WORLD_TABLE = 
-        "drop table " + WorldStore.WORLD_TABLE_NAME;
+        "drop table " + Q.WORLD_TABLE_NAME;
     
     private boolean worldCreated; // has the store been already created?
     private boolean worldUpdated; // has the store been already updated?
@@ -233,4 +234,46 @@ public class WorldStoreTest extends TestCase {
         assertTrue(group.contains("T[SD]"));
     }
 
+    public void testAddGroupAlliances() throws Exception {
+        if (!worldUpdated) {
+            testUpdateWorld();
+            assertEquals(true, worldUpdated);
+        }
+        Map<String,ArrayList<String>> GROUPS = new HashMap<String,ArrayList<String>>();
+        ArrayList<String> alliances = null;
+
+        //
+        // NOTE: alliance names in a goup must be alphabetically ordered
+        //
+        alliances = new ArrayList<String>();
+        alliances.add("**B-A**");
+        alliances.add("T[SD]");
+
+        GROUPS.put("group1", alliances);
+
+        alliances = new ArrayList<String>();
+        alliances.add("+SPQRIII");
+        alliances.add("Berserk+");
+
+        GROUPS.put("group2", alliances);
+
+        alliances = new ArrayList<String>();
+        alliances.add("~COLONY~");
+
+        GROUPS.put("group3", alliances);
+
+        WorldStore store = new WorldStore();
+
+        store.updateAllianceGroups(GROUPS);
+
+        Map<String,ArrayList<String>> groups = store.readAllianceGroups();
+
+        for (String groupName: GROUPS.keySet()) {
+            assertNotNull(alliances = groups.get(groupName));
+            int i = 0;
+            for (String alliance: GROUPS.get(groupName)) {
+                assertEquals(alliance, alliances.get(i++));
+            }
+        }
+    }
 }
