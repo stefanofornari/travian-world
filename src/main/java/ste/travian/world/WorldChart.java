@@ -27,9 +27,10 @@
  */
 package ste.travian.world;
 
+import java.util.ArrayList;
+import java.util.Map;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.data.xy.XYDataset;
@@ -46,8 +47,7 @@ public class WorldChart {
     JFreeChart chart;
     World world;
 
-    public WorldChart(final String title,
-            final World world) {
+    public WorldChart(final String title, final World world) {
         if (world == null) {
             throw new IllegalArgumentException("world cannot be null!");
         }
@@ -102,7 +102,7 @@ public class WorldChart {
         assert (world != null) : "world must not be null when createDataset is called";
         
         WorldDataset dataset = new WorldDataset();
-        dataset.setKeys(new String[] {"War Hero"});
+
         dataset.initialize(world);
         
         return dataset;
