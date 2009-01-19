@@ -45,83 +45,6 @@ import ste.travian.world.World;
 public class WorldStore {
 
     public static final String REST_OF_THE_WORLD_GROUP = "Rest of the world";
-    public static final String WORLD_TABLE_NAME = "X_WORLD";
-    public static final String ALLIANCE_TABLE_NAME = "X_ALLIANCE";
-    public static final String GROUP_TABLE_NAME = "X_GROUP";
-    public static final String ALLIANCE_GROUP_TABLE_NAME = "X_ALLIANCE_GROUP";
-
-    public static final String SQL_CREATE_WORLD =
-            "CREATE TABLE " +
-            WORLD_TABLE_NAME +
-            "(" +
-            "id int NOT NULL," +
-            "x smallint NOT NULL," +
-            "y smallint NOT NULL," +
-            "tid smallint  NOT NULL," +
-            "vid int NOT NULL," +
-            "village varchar(100) NOT NULL," +
-            "uid int NOT NULL," +
-            "player varchar(40) NOT NULL," +
-            "aid int NOT NULL," +
-            "alliance varchar(40) NOT NULL," +
-            "population smallint NOT NULL," +
-            "PRIMARY KEY (id)" +
-            ")";
-    
-    public static final String SQL_CREATE_ALLIANCE  =
-            "CREATE TABLE "                         +
-            ALLIANCE_TABLE_NAME                     +
-            "(id int primary key, name varchar(40))";
-
-    public static final String SQL_CREATE_GROUP      =
-            "CREATE TABLE "                          +
-            GROUP_TABLE_NAME                         +
-            "(id int primary key, name varchar(100))";
-
-    public static final String SQL_CREATE_ALLIANCE_GROUP =
-            "CREATE TABLE "                              +
-            ALLIANCE_GROUP_TABLE_NAME                    +
-            "(aid int, gid int, primary key(aid, gid))"  ;
-
-    public static final String SQL_DELETE_ALL_WORLD = "delete from " + WORLD_TABLE_NAME;
-    public static final String SQL_DELETE_ALL_ALLIANCE = "delete from " + ALLIANCE_TABLE_NAME;
-    public static final String SQL_DELETE_ALL_GROUP = "delete from " + GROUP_TABLE_NAME;
-    public static final String SQL_DELETE_ALL_ALLIANCE_GROUP_TABLE_NAME =
-            "delete from " + ALLIANCE_GROUP_TABLE_NAME;
-
-    public static final String SQL_GET_ALL_WORLD =
-            "select * from " + WORLD_TABLE_NAME  ;
-    public static final String SQL_GET_ALL_ALLIANCES = 
-            " select * from "                        +
-            ALLIANCE_TABLE_NAME                      +
-            " order by name"                         ;
-    public static final String SQL_GET_ALL_ALLIANCE_GROUPS =
-            "select g.name, a.name from "                  +
-            GROUP_TABLE_NAME                               +
-            " g, "                                         +
-            ALLIANCE_TABLE_NAME                            +
-            " a, "                                         +
-            ALLIANCE_GROUP_TABLE_NAME                      +
-            " ag where "                                   +
-            "g.id=ag.gid and a.id=ag.aid "                 +
-            "order by 1"                                   ;
-    public static final String SQL_GET_REST_OF_THE_WORLD_ALLIANCES =
-            "select name from "                                    +
-            ALLIANCE_TABLE_NAME                                    +
-            " where id not in ("                                   +
-            "select distinct aid from "                            +
-            ALLIANCE_GROUP_TABLE_NAME                              +
-            ") order by 1"                                         ;
-
-
-    public static final String SQL_INSERT_ALL_ALLIANCES =
-        "insert into "                                  +
-        ALLIANCE_TABLE_NAME                             +
-        "("                                             +
-        "select distinct aid, alliance from "           +
-        WORLD_TABLE_NAME                                +
-        ")"                                             ;
-
 
     /**
      * Creates the world in the database.
@@ -133,10 +56,10 @@ public class WorldStore {
         try {
             sc = new StoreConnection();
 
-            sc.executeUpdate(SQL_CREATE_WORLD);
-            sc.executeUpdate(SQL_CREATE_ALLIANCE);
-            sc.executeUpdate(SQL_CREATE_GROUP);
-            sc.executeUpdate(SQL_CREATE_ALLIANCE_GROUP);
+            sc.executeUpdate(Q.SQL_CREATE_WORLD);
+            sc.executeUpdate(Q.SQL_CREATE_ALLIANCE);
+            sc.executeUpdate(Q.SQL_CREATE_GROUP);
+            sc.executeUpdate(Q.SQL_CREATE_ALLIANCE_GROUP);
         } catch (Exception e) {
             throw new StoreException("Error in creating the world map", e);
         } finally {
@@ -182,8 +105,8 @@ public class WorldStore {
             //
             // First we need to delete everything
             //
-            sc.executeUpdate(SQL_DELETE_ALL_WORLD);
-            sc.executeUpdate(SQL_DELETE_ALL_ALLIANCE);
+            sc.executeUpdate(Q.SQL_DELETE_ALL_WORLD);
+            sc.executeUpdate(Q.SQL_DELETE_ALL_ALLIANCE);
 
             String query = null;
             while ((query = in.readLine()) != null) {
@@ -196,7 +119,7 @@ public class WorldStore {
             //
             // Let's extract the alliances
             //
-            sc.executeUpdate(SQL_INSERT_ALL_ALLIANCES);
+            sc.executeUpdate(Q.SQL_INSERT_ALL_ALLIANCES);
 
         } catch (Exception e) {
             throw new StoreException("Error in storing the world map", e);
@@ -228,7 +151,7 @@ public class WorldStore {
             //
             // First we need to delete everything
             //
-            rs = sc.executeQuery(SQL_GET_ALL_WORLD);
+            rs = sc.executeQuery(Q.SQL_GET_ALL_WORLD);
 
             Tile t = null;
             while (rs.next()) {
@@ -273,7 +196,7 @@ public class WorldStore {
 
             boolean ret = false;
             while (!ret && rs.next()) {
-                if (WORLD_TABLE_NAME.equalsIgnoreCase(rs.getString(3))) {
+                if (Q.WORLD_TABLE_NAME.equalsIgnoreCase(rs.getString(3))) {
                     ret = true;
                 }
             }
@@ -320,7 +243,7 @@ public class WorldStore {
             // We cannot simply select the table by name because some db use
             // capital letters, other small letters...
             //
-            rs = sc.executeQuery(SQL_GET_ALL_ALLIANCES);
+            rs = sc.executeQuery(Q.SQL_GET_ALL_ALLIANCES);
 
             while (rs.next()) {
                 ret.put(new Integer(rs.getInt(1)), rs.getString(2));
@@ -371,7 +294,7 @@ public class WorldStore {
             //
             // First get the alliances not in any group
             //
-            rs = sc.executeQuery(SQL_GET_REST_OF_THE_WORLD_ALLIANCES);
+            rs = sc.executeQuery(Q.SQL_GET_REST_OF_THE_WORLD_ALLIANCES);
 
             groupName = REST_OF_THE_WORLD_GROUP;
             group = new ArrayList<String>();
@@ -385,15 +308,16 @@ public class WorldStore {
             //
             // Now let's get the groups
             //
-            rs = sc.executeQuery(SQL_GET_ALL_ALLIANCE_GROUPS);
+            rs = sc.executeQuery(Q.SQL_GET_ALL_ALLIANCE_GROUPS);
 
             while (rs.next()) {
                 groupName = rs.getString(1);
-                if (!ret.containsKey(groupName)) {
+                group = ret.get(groupName);
+                if (group == null) {
                     group = new ArrayList<String>();
                     ret.put(groupName, group);
                 }
-                group.add(rs.getString(1));
+                group.add(rs.getString(2));
             }
 
             return ret;
@@ -412,7 +336,85 @@ public class WorldStore {
         }
     }
 
+    public void updateAllianceGroups(Map<String, ArrayList<String>> groups)
+    throws StoreException {
+        StoreConnection sc = null;
+        try {
+            sc = new StoreConnection();
+
+            ArrayList<String> group = null;
+
+            //
+            // First remove all existing groups
+            //
+            sc.executeUpdate(Q.SQL_DELETE_ALL_ALLIANCE_GROUP);
+            sc.executeUpdate(Q.SQL_DELETE_ALL_GROUP);
+
+            int groupId = 0;
+            for (String groupName: groups.keySet()) {
+                if (!REST_OF_THE_WORLD_GROUP.equals(groupName)) {
+                    addGroup(sc, ++groupId, groupName);
+                    for (String alliance: groups.get(groupName)) {
+                        addAllianceGroup(sc, groupId, alliance);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new StoreException("Error retrieving alliance groups", e);
+        } finally {
+            if (sc != null) {
+                try { sc.closeConnection(); } catch (SQLException e) {}
+                sc = null;
+            }
+        }
+    }
+
     // --------------------------------------------------------- Private methods
+
+    /**
+     * Insert an alliance group.
+     * 
+     * @param c the store connection
+     * @param group the group name
+     * @return the id of the new group
+     * 
+     * @throws java.sql.SQLException
+     */
+    private void addGroup(StoreConnection c, int id, String group)
+    throws SQLException {
+        c.executeUpdate(
+            Q.SQL_ADD_NEW_GROUP,
+            new Object[] { new Integer(id), group }
+        );
+    }
+
+    /**
+     * Add the given group of alliances. Since the database links must be done
+     * through the ids, we need to look up the alliances from the alliance table.
+     *
+     * @param c the store connection
+     * @param group the group name
+     * @param alliance the alliance name
+     * 
+     * @throws java.sql.SQLException in case of database error
+     */
+    private void addAllianceGroup(StoreConnection c, int group, String alliance)
+    throws SQLException {
+        c.executeUpdate(
+            Q.SQL_ADD_NEW_GROUP_ALLIANCE,
+            new Object[] { new Integer(group), alliance }
+        );
+
+    }
+
+    /**
+     * Return a Tile object from the data of the given result set
+     *
+     * @param rs the result set
+     * @return the newly created tile
+     *
+     * @throws java.sql.SQLException in case of database error
+     */
     private Tile getTile(ResultSet rs) throws SQLException {
         return new Tile(
                 rs.getInt(1), // id
