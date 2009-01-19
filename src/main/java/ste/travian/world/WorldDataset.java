@@ -30,6 +30,7 @@ package ste.travian.world;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import org.jfree.data.DomainOrder;
 import org.jfree.data.general.DatasetChangeListener;
 import org.jfree.data.general.DatasetGroup;
@@ -45,7 +46,8 @@ implements XYDataset {
     public static final String DEFAULT_KEY = "Rest of the world";
     
     private List<List<Tile>> data;
-    private List<String> keys; // alliances to be selected in different serries
+    private List<String> keys;
+    private Map<String, ArrayList<String>> allianceGroups;
     private List<DatasetChangeListener> listeners;
     private DatasetGroup group;
     
@@ -135,7 +137,17 @@ implements XYDataset {
      * @return the key for the series
      */
     public int indexOf(Comparable key) {
-        return keys.indexOf(key);
+        if (allianceGroups != null) {
+            int i = 0;
+            for(String groupName: allianceGroups.keySet()) {
+                if (allianceGroups.get(groupName).contains(key)) {
+                    return i;
+                }
+                ++i;
+            }
+        }
+
+        return 0;
     }
     
     /**
@@ -204,16 +216,21 @@ implements XYDataset {
         }
 
         clearSeries();
+
+        allianceGroups = world.getAllianceGroups();
+        if (allianceGroups != null) {
+            for(String groupName: allianceGroups.keySet()) {
+                keys.add(groupName);
+                data.add(new ArrayList<Tile>());
+            }
+        }
         
         for (int y=world.getMinY(); y<=world.getMaxY(); ++y) {
             for (int x=world.getMinX(); x<=world.getMaxY(); ++x) {
                 Tile t = world.getTile(x, y);
                 if (t != null) {
-                    int allianceIndex = keys.indexOf(t.getAlliance());
-                    //
-                    // note that the series with position 0 is the default one
-                    //
-                    data.get((allianceIndex<0) ? 0 : allianceIndex).add(t);
+                    int allianceIndex = indexOf(t.getAlliance());
+                    data.get(allianceIndex).add(t);
                 }
             }
         }
@@ -222,33 +239,7 @@ implements XYDataset {
     public String[] getKeys() {
         return keys.toArray(new String[keys.size()]);
     }
-    
-    public void setKeys(String[] keys) {
-        if (keys == null) {
-            return;
-        }
-        
-        initializeKeys();
-        initializeSeries();
-        
-        for (int i=0; i<keys.length; ++i) {
-            this.keys.add(keys[i]);
-            data.add(new ArrayList<Tile>());
-        }
-    }
-    
-    public void setKeys(List<String> keys) {
-        if (keys == null) {
-            return;
-        }
-        
-        String defaultSeries = this.keys.get(0);
-        this.keys.clear();
-        this.keys.add(defaultSeries);
-        
-        this.keys.addAll(keys);
-    }
-    
+
     public DatasetChangeListener[] getChangeListeners() {
         return listeners.toArray(new DatasetChangeListener[listeners.size()]);
     }
@@ -319,19 +310,14 @@ implements XYDataset {
      * 
      */
     private void initializeKeys() {
-        keys = new ArrayList<String>();
-        keys.add(DEFAULT_KEY);        
+        keys = new ArrayList<String>();       
     }
     
     /**
      * Initializes the dat series
      */
     private void initializeSeries() {
-        //
-        // All data of the alliances not selected will go in this series:
-        //
         data = new ArrayList<List<Tile>>();
-        data.add(new ArrayList<Tile>());
     }
     
     /**
@@ -343,6 +329,5 @@ implements XYDataset {
             i.next().clear();
         }
     }
-    
     
 }
