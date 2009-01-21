@@ -28,18 +28,12 @@
 
 package ste.travian.gui;
 
-import java.awt.Dimension;
-import java.awt.EventQueue;
+import java.awt.Cursor;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Map;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.JPanel;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import org.jdesktop.swingx.JXDialog;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
@@ -63,12 +57,16 @@ implements ChartMouseListener {
     private URL url;
     private TravianWorldFrame mainWindow;
     private AllianceGroupsPanel allianceGroupsPanel;
+
+    private final ExecutorService executor;
     
     protected WorldController() {
         url = null;
         world = null;
         mainWindow = null;
         allianceGroupsPanel = null;
+
+        executor = Executors.newCachedThreadPool();
     }
     
     /**
@@ -123,14 +121,7 @@ implements ChartMouseListener {
     public JPanel getWorldPanel() {
         WorldChart chart = new WorldChart("Travian world", world);
         
-        ChartPanel panel = new ChartPanel(
-            chart.getChart(),
-            true,
-            true,
-            true,
-            true,
-            true
-        );
+        WorldChartPanel panel = new WorldChartPanel(mainWindow, chart);
         
         panel.addChartMouseListener(this);
         
@@ -181,22 +172,30 @@ implements ChartMouseListener {
     }
 
     public void showMainWindow() {
-        EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                mainWindow = new TravianWorldFrame(WorldController.this);
-                mainWindow.setVisible(true);
-            }
-        });
+        mainWindow = new TravianWorldFrame(WorldController.this);
+        mainWindow.setVisible(true);
+
+        showMap();
     }
 
+    /**
+     * Shows the map chart
+     */
     public void showMap() {
-        EventQueue.invokeLater(
+        mainWindow.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+        executor.execute(
             new Runnable() {
                 public void run() {
                     try {
                         load();
                         mainWindow.showMap(getWorldPanel());
+                        //
+                        // do not move the line below, it needs to be here so
+                        // that all components will have the wait cursor set
+                        //
+                        mainWindow.setCursor(new Cursor(Cursor.WAIT_CURSOR));
                     } catch (Exception e) {
+                        mainWindow.setCursor(Cursor.getDefaultCursor());
                         mainWindow.error("Error creating the map", e);
                     }
                 }

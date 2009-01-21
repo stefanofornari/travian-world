@@ -29,6 +29,7 @@
 package ste.travian.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -40,7 +41,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -139,7 +139,7 @@ public class TravianWorldFrame extends JFrame {
         showMap(c.getWorldPanel());
     }
     
-    public void showMap(JPanel worldPanel) {
+    public void showMap(final JPanel worldPanel) {
         getContentPane().add(worldPanel, BorderLayout.CENTER);
         pack();
     }
