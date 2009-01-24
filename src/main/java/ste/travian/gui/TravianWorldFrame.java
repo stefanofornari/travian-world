@@ -62,10 +62,6 @@ public class TravianWorldFrame extends JFrame {
 
     public static final String PROPERTY_COLLAPTION_STATE = "collapsed";
     
-    private JButton mapLoadButton;
-    private JPanel urlPanel;
-    private JLabel urlLabel;
-    private JTextField urlMapText;
     private JTextField statusText;
     
     private WorldController c;
@@ -81,11 +77,6 @@ public class TravianWorldFrame extends JFrame {
      * initialize the form.
      */
     private void initComponents() {
-        
-        urlLabel = new JLabel();
-        urlMapText = new JTextField();
-        mapLoadButton = new JButton();
-        urlPanel = new JPanel();
         statusText = new JTextField();
 
         setLayout(new BorderLayout());
@@ -93,22 +84,6 @@ public class TravianWorldFrame extends JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Travian Map");
 
-        urlPanel.setLayout(new FlowLayout());
-        urlLabel.setText("url:");
-        urlPanel.add(urlLabel);
-
-        urlMapText.setText("http://s4.travian.com/map.sql.gz");
-        urlMapText.setPreferredSize(new Dimension(300, 22));
-        urlPanel.add(urlMapText);
-
-        mapLoadButton.setText("Load");
-        mapLoadButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mapLoadButtonActionPerformed(evt);
-            }
-        });
-        urlPanel.add(mapLoadButton);
-        getContentPane().add(urlPanel, BorderLayout.PAGE_START);
         getContentPane().add(statusText, BorderLayout.PAGE_END);
         
         setJMenuBar(new TravianWorldMenuBar(c));
@@ -116,29 +91,6 @@ public class TravianWorldFrame extends JFrame {
         pack();
     }
 
-
-    private void mapLoadButtonActionPerformed(ActionEvent evt) {
-        //
-        // If no URL is provide do nothing...
-        //
-        String urlText = urlMapText.getText();
-        if (urlText.length() == 0) {
-            return;
-        }
-        
-        try {
-            c.load(new URL(urlText));
-        } catch (MalformedURLException e) {
-            error("Invalid map URL: " + urlText, e);
-            return;
-        } catch (TravianException e) {
-            error("Error loading the map from " + urlText, e);
-            return;
-        }
-        
-        showMap(c.getWorldPanel());
-    }
-    
     public void showMap(final JPanel worldPanel) {
         getContentPane().add(worldPanel, BorderLayout.CENTER);
         pack();
