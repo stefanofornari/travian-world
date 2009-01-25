@@ -31,14 +31,10 @@ package ste.travian.gui;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
 import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -46,13 +42,12 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.UIManager;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXDialog;
-import ste.travian.TravianException;
 
 /**
  *
@@ -63,6 +58,7 @@ public class TravianWorldFrame extends JFrame {
     public static final String PROPERTY_COLLAPTION_STATE = "collapsed";
     
     private JLabel statusText;
+    private JProgressBar progressBar;
     
     private WorldController c;
 
@@ -78,6 +74,9 @@ public class TravianWorldFrame extends JFrame {
      */
     private void initComponents() {
         statusText = new JLabel();
+        progressBar = new JProgressBar();
+
+        progressBar.setIndeterminate(rootPaneCheckingEnabled);
 
         setLayout(new BorderLayout());
 
@@ -93,6 +92,21 @@ public class TravianWorldFrame extends JFrame {
 
     public void showMap(final JPanel worldPanel) {
         getContentPane().add(worldPanel, BorderLayout.CENTER);
+        pack();
+    }
+
+    public void setWaitingStatus(boolean status) {
+        if (status == true) {
+            setEnabled(false);
+            setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+            getContentPane().remove(statusText);
+            getContentPane().add(progressBar, BorderLayout.PAGE_END);
+        } else {
+            setEnabled(true);
+            setCursor(null);
+            getContentPane().remove(progressBar);
+            getContentPane().add(statusText, BorderLayout.PAGE_END);
+        }
         pack();
     }
     
