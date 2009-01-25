@@ -48,6 +48,7 @@ public class WorldChartPanel extends ChartPanel {
 
     @Override
     public void chartProgress(ChartProgressEvent event) {
+
         if (event.getType() == ChartProgressEvent.DRAWING_STARTED) {
             mainWindow.setCursor(new Cursor(Cursor.WAIT_CURSOR));
         } else {
