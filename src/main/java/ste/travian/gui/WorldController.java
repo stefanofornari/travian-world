@@ -216,7 +216,12 @@ implements ChartMouseListener {
     public void chartMouseMoved(ChartMouseEvent event) {
         ChartEntity entity = event.getEntity();
         if (entity == null) {
-            mainWindow.statusMessage("");
+            //
+            // NOTE: we set the text to a space instead of an empty string to
+            // avoid flickering of the UI (the JLabel disappeas when thee is no
+            // text)
+            //
+            mainWindow.statusMessage(" ");
             return;
         }
         if (entity instanceof XYItemEntity) {
