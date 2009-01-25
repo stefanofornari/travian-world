@@ -197,7 +197,7 @@ implements ChartMouseListener {
                         // do not move the line below, it needs to be here so
                         // that all components will have the wait cursor set
                         //
-                        mainWindow.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+                        mainWindow.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
                     } catch (Exception e) {
                         mainWindow.setCursor(Cursor.getDefaultCursor());
                         mainWindow.error("Error creating the map", e);

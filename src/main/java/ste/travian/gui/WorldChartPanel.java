@@ -50,7 +50,7 @@ public class WorldChartPanel extends ChartPanel {
     public void chartProgress(ChartProgressEvent event) {
 
         if (event.getType() == ChartProgressEvent.DRAWING_STARTED) {
-            mainWindow.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+            mainWindow.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         } else {
             mainWindow.setCursor(Cursor.getDefaultCursor());
         }
