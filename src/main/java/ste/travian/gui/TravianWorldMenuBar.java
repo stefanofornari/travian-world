@@ -42,9 +42,7 @@ import javax.swing.KeyStroke;
  */
 public class TravianWorldMenuBar extends JMenuBar {
     
-    private JMenu file;
     private JMenu world;
-    private JMenu help;
     
     private WorldController controller;
     
@@ -55,16 +53,14 @@ public class TravianWorldMenuBar extends JMenuBar {
         
         JMenuItem m = null;
         
-        file = new JMenu("File");
-        file.add(m = new JMenuItem("Update map"));
+        world = new JMenu("World");
+        world.add(m = new JMenuItem("Update map"));
         m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.META_MASK));
         m.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 TravianWorldMenuBar.this.controller.updateWorld();
             }
         });
-
-        world = new JMenu("World");
         world.add(m = new JMenuItem("Group alliances"));
         m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, ActionEvent.META_MASK));
         m.addActionListener(new ActionListener() {
@@ -72,15 +68,6 @@ public class TravianWorldMenuBar extends JMenuBar {
                 TravianWorldMenuBar.this.controller.showAllianceGroupsDialog();
             }
         });
-        world.add(m = new JMenuItem("Show map"));
-        m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, ActionEvent.META_MASK));
-        m.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                TravianWorldMenuBar.this.controller.showMap();
-            }
-        });
-        
-        add(file);
         add(world);
     }
     
