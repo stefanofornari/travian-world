@@ -29,12 +29,12 @@
 package ste.travian.gui;
 
 import java.awt.Cursor;
-import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.entity.ChartEntity;
@@ -54,14 +54,12 @@ public class WorldController
 implements ChartMouseListener {
     
     private World world;
-    private URL url;
     private TravianWorldFrame mainWindow;
     private AllianceGroupsPanel allianceGroupsPanel;
 
     private final ExecutorService executor;
     
     protected WorldController() {
-        url = null;
         world = null;
         mainWindow = null;
         allianceGroupsPanel = null;
@@ -86,15 +84,10 @@ implements ChartMouseListener {
         store.initialize();
         
         MapDownloader downloader = new MapDownloader(url.toExternalForm());
-        
-        try {
-            store.updateWorld(downloader.downloadMapAsReader());
-        } catch (IOException e) {
-            throw new TravianException("Error reading the map from " + url, e);
-        }
-        
-        this.url = url;
-        world = store.getWorld();
+
+        WorldUpdateWorker worker =
+            new WorldUpdateWorker(mainWindow, store, downloader);
+        worker.execute();
     }
     
     /**
@@ -169,6 +162,7 @@ implements ChartMouseListener {
         if (result != JOptionPane.NO_OPTION) {
             try {
                 load(mapUrlPanel.getUrl());
+                load();
             } catch (Exception e) {
                 mainWindow.error(e.getMessage(), e);
             }
