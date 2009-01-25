@@ -192,14 +192,5 @@ public class TravianWorldFrame extends JFrame {
 
     }
 
-    public static void main(String[] args) {
-        try{
-            throw new Exception("This is an error");
-        } catch (Exception e) {
-            new TravianWorldFrame(new WorldController()).error("error", e);
-        }
-
-    }
-
 }
 
