@@ -33,10 +33,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
-import org.jfree.chart.ChartPanel;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.XYItemEntity;
 import ste.travian.TravianException;
@@ -141,34 +141,38 @@ implements ChartMouseListener {
         }
         return world;
     }
-    
+
+    /**
+     * Shows the dialog to edit alliance groups
+     */
     public void showAllianceGroupsDialog() {
         new AllianceGroupsController().showMainWindow(mainWindow);
     }
-    
-    // ------------------------------------------------------ ChartMouseListener
-    
-    public void chartMouseClicked(ChartMouseEvent event) {
-        
-    }
-    
-    public void chartMouseMoved(ChartMouseEvent event) {
-        ChartEntity entity = event.getEntity();
-        if (entity == null) {
-            mainWindow.statusMessage("");
-            return;
-        }
-        if (entity instanceof XYItemEntity) {
-            XYItemEntity itemEntity = (XYItemEntity)entity;
-            WorldDataset dataset = (WorldDataset)itemEntity.getDataset();
-            mainWindow.statusMessage(String.valueOf(dataset.getTile(itemEntity.getSeriesIndex(), itemEntity.getItem())));
-        } else {
-            mainWindow.statusMessage(String.valueOf(entity));
-        }
-    }
 
-    public TravianWorldFrame getFrame() {
-        return mainWindow;
+    /**
+     * Shows the dialog to edit the map URL.
+     */
+    public void updateWorld() {
+        MapUrlPanel mapUrlPanel = new MapUrlPanel();
+
+        int result = JOptionPane.showOptionDialog(
+            mainWindow,
+            mapUrlPanel,
+            mainWindow.getTitle(),
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            new Object[] {"Download", "Cancel"},
+            null
+            );
+
+        if (result != JOptionPane.NO_OPTION) {
+            try {
+                load(mapUrlPanel.getUrl());
+            } catch (Exception e) {
+                mainWindow.error(e.getMessage(), e);
+            }
+        }
     }
 
     public void showMainWindow() {
@@ -202,6 +206,29 @@ implements ChartMouseListener {
             }
         );
     }
+    
+    // ------------------------------------------------------ ChartMouseListener
+    
+    public void chartMouseClicked(ChartMouseEvent event) {
+        
+    }
+    
+    public void chartMouseMoved(ChartMouseEvent event) {
+        ChartEntity entity = event.getEntity();
+        if (entity == null) {
+            mainWindow.statusMessage("");
+            return;
+        }
+        if (entity instanceof XYItemEntity) {
+            XYItemEntity itemEntity = (XYItemEntity)entity;
+            WorldDataset dataset = (WorldDataset)itemEntity.getDataset();
+            mainWindow.statusMessage(String.valueOf(dataset.getTile(itemEntity.getSeriesIndex(), itemEntity.getItem())));
+        } else {
+            mainWindow.statusMessage(String.valueOf(entity));
+        }
+    }
+
+    // -------------------------------------------------------------------- main
 
     public static void main(String[] args) throws Exception {
         WorldController c = new WorldController();

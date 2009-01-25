@@ -62,7 +62,7 @@ public class TravianWorldFrame extends JFrame {
 
     public static final String PROPERTY_COLLAPTION_STATE = "collapsed";
     
-    private JTextField statusText;
+    private JLabel statusText;
     
     private WorldController c;
 
@@ -77,7 +77,7 @@ public class TravianWorldFrame extends JFrame {
      * initialize the form.
      */
     private void initComponents() {
-        statusText = new JTextField();
+        statusText = new JLabel();
 
         setLayout(new BorderLayout());
 

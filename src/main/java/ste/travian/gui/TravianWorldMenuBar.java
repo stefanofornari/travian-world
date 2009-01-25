@@ -58,6 +58,11 @@ public class TravianWorldMenuBar extends JMenuBar {
         file = new JMenu("File");
         file.add(m = new JMenuItem("Update map"));
         m.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, ActionEvent.META_MASK));
+        m.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                TravianWorldMenuBar.this.controller.updateWorld();
+            }
+        });
 
         world = new JMenu("World");
         world.add(m = new JMenuItem("Group alliances"));
