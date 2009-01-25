@@ -84,13 +84,13 @@ public class MapDownloader {
      * @throws java.io.IOException
      */
     public InputStream downloadMapAsStream() throws IOException {
-        return mapURL.openStream();
+        return new GZIPInputStream(mapURL.openStream());
     }
     
     public BufferedReader downloadMapAsReader() throws IOException {
         return  new BufferedReader(
                     new InputStreamReader(
-                        new GZIPInputStream(downloadMapAsStream())
+                        downloadMapAsStream()
                     )
                 );
     }
