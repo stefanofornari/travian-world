@@ -105,14 +105,14 @@ public class WorldDatasetTest extends TestCase {
     public void testInitialize() {
         WorldDataset instance = new WorldDataset();
         
-        assertEquals(1, instance.getSeriesCount());
+        assertEquals(0, instance.getSeriesCount());
         assertEquals(0, instance.getChangeListeners().length);
         assertNull(instance.getGroup());
         
         instance.initialize(WORLD);
         
-        assertEquals(2, instance.getItemCount(0));
-        assertEquals(3, instance.getKeys().length);
+        assertEquals(4, instance.getItemCount(0));
+        assertEquals(2, instance.getKeys().length);
     }
     
     public void testGetTile() {
@@ -121,7 +121,7 @@ public class WorldDatasetTest extends TestCase {
         instance.initialize(WORLD);
         
         Tile t = instance.getTile(0, 1);
-        assertEquals(WorldTest.TILES[2].getId(), t.getId());
+        assertEquals(WorldTest.TILES[3].getId(), t.getId());
         
         try {
             instance.getTile(-1, 0);
@@ -155,25 +155,25 @@ public class WorldDatasetTest extends TestCase {
         
         instance.initialize(WORLD);
         
-        assertEquals(3, instance.getSeriesCount());
+        assertEquals(2, instance.getSeriesCount());
     }
 
     public void testGetSeriesKey() {
         WorldDataset instance = new WorldDataset();
         
         instance.initialize(WORLD);
-                
-        assertEquals(WorldDataset.DEFAULT_KEY, instance.getSeriesKey(0));
-        assertEquals(KEYS[0], instance.getSeriesKey(1));
+
+        assertEquals(KEYS[0], instance.getSeriesKey(0));
+        assertEquals(KEYS[1], instance.getSeriesKey(1));
     }
 
     public void testIndexOf() {
         WorldDataset instance = new WorldDataset();
         
         instance.initialize(WORLD);
-        
-        assertEquals(0, instance.indexOf(WorldDataset.DEFAULT_KEY));
-        assertEquals(1, instance.indexOf(WorldTest.TILES[0].getAlliance()));
+
+        assertEquals(0, instance.indexOf(WorldTest.TILES[0].getAlliance()));
+        assertEquals(0, instance.indexOf(WorldTest.TILES[2].getAlliance()));
     }
 
     public void testAddRemoveChangeListener() {
@@ -206,15 +206,15 @@ public class WorldDatasetTest extends TestCase {
         assertEquals(new Integer(WorldTest.TILES[1].getX()), instance.getX(instance.indexOf(WorldTest.TILES[1].getAlliance()), 0));
     }
     
-    public void testGetY() {
-        WorldDataset instance = new WorldDataset();
+    public void testGetYValue() {
+        WorldDataset dataset = new WorldDataset();
         
-        instance.initialize(WORLD);
+        dataset.initialize(WORLD);
         //
         // note that tiles are inserted from minX to maxX and minY to maxY
         //
-        assertEquals(WorldTest.TILES[2].getY(), (int)instance.getYValue(instance.indexOf(WorldTest.TILES[2].getAlliance()), 1));
-        assertEquals(new Integer(WorldTest.TILES[2].getY()), instance.getY(instance.indexOf(WorldTest.TILES[2].getAlliance()), 1));
+        assertEquals(WorldTest.TILES[1].getY(), (int)dataset.getYValue(dataset.indexOf(WorldTest.TILES[0].getAlliance()), 0));
+        assertEquals(new Integer(WorldTest.TILES[0].getY()), dataset.getY(dataset.indexOf(WorldTest.TILES[2].getAlliance()), 3));
     }
 
     //
