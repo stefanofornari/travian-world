@@ -43,8 +43,6 @@ import org.jfree.data.xy.XYDataset;
 public class WorldDataset 
 implements XYDataset {
     
-    public static final String DEFAULT_KEY = "Rest of the world";
-    
     private List<List<Tile>> data;
     private List<String> keys;
     private Map<String, ArrayList<String>> allianceGroups;
