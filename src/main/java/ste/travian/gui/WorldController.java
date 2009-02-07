@@ -34,12 +34,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.entity.ChartEntity;
 import org.jfree.chart.entity.XYItemEntity;
+import ste.travian.Constants;
 import ste.travian.TravianException;
+import ste.travian.store.StoreConnection;
 import ste.travian.store.WorldStore;
 import ste.travian.world.MapDownloader;
 import ste.travian.world.World;
@@ -51,7 +52,7 @@ import ste.travian.world.WorldDataset;
  * @author ste
  */
 public class WorldController
-implements ChartMouseListener {
+implements Constants, ChartMouseListener {
     
     private World world;
     private TravianWorldFrame mainWindow;
@@ -230,18 +231,39 @@ implements ChartMouseListener {
     // -------------------------------------------------------------------- main
 
     public static void main(String[] args) throws Exception {
-        WorldController c = new WorldController();
+        //
+        // Set default values for the database configuration
+        //
+        String value = System.getProperty(StoreConnection.PROP_JDBC_DRIVER);
+        if (value == null) {
+            System.setProperty(StoreConnection.PROP_JDBC_DRIVER, DEFAULT_JDBC_DRIVER);
+        }
+
+        value = System.getProperty(StoreConnection.PROP_JDBC_URL);
+        if (value == null) {
+            System.setProperty(StoreConnection.PROP_JDBC_URL, DEFAULT_JDBC_URL);
+        }
+
+        value = System.getProperty(StoreConnection.PROP_JDBC_USER);
+        if (value == null) {
+            System.setProperty(StoreConnection.PROP_JDBC_USER, DEFAULT_JDBC_USER);
+        }
+
+        value = System.getProperty(StoreConnection.PROP_JDBC_PASSWORD);
+        if (value == null) {
+            System.setProperty(StoreConnection.PROP_JDBC_PASSWORD, DEFAULT_JDBC_PASSWORD);
+        }
 
         //
         // Tweaks for MacOS UI
         // Rememeber to add -Xdock:name="Travian world" to the command line...
         //
-        System.setProperty("apple.laf.useScreenMenuBar", "true");
-        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "About Travian World");
-        System.setProperty("com.apple.mrj.application.growbox.intrudes", "false");
+        System.setProperty(PROPERTY_APPLE_USE_MENUBAR, "true");
+        System.setProperty(PROPERTY_APPLE_ABOUT_NAME, "About Travian World");
+        System.setProperty(PROPERTY_APPLE_INTRUDES, "true");
         // ---
 
-        c.showMainWindow();
+        new WorldController().showMainWindow();
 
     }
 }
