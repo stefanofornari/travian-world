@@ -58,7 +58,6 @@ public class AllianceGroupsTree extends JTree
         setEditable(true);
         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         setShowsRootHandles(true);
-        setPreferredSize(new Dimension(200, 300));
         
         setModel(new DefaultTreeModel(new DefaultMutableTreeNode()));
 

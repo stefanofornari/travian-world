@@ -60,7 +60,9 @@ public class AllianceGroupsPanel extends JPanel {
         super(new BorderLayout());
 
         tree = new AllianceGroupsTree();
-        add(new JScrollPane(tree), BorderLayout.LINE_START);
+        JScrollPane pane = new JScrollPane(tree);
+        pane.setPreferredSize(new Dimension(200, 300));
+        add(pane, BorderLayout.LINE_START);
 
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -83,7 +85,7 @@ public class AllianceGroupsPanel extends JPanel {
         add(panel, BorderLayout.CENTER);
 
         restOfTheWorldList = new AllianceList();
-        JScrollPane pane = new JScrollPane(restOfTheWorldList);
+        pane = new JScrollPane(restOfTheWorldList);
         pane.setPreferredSize(new Dimension(200, 300));
         add(pane, BorderLayout.LINE_END);
 
